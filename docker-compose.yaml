@@ -1,0 +1,21 @@
+version: '3.4'
+services:
+  db:
+    image: "mysql"
+    restart: always
+    environment:
+      MYSQL_DATABASE: mcm
+      MYSQL_USER: mcm-user
+      MYSQL_ROOT_PASSWORD: mcm-pass
+
+
+  mcm-client:
+    build:
+      context: .
+    env_file: ./src/.env
+    ports:
+      - "4000:4000"
+    links:
+      - db
+    depends_on:
+      - db
