@@ -26,23 +26,10 @@ class HubCertificateModel {
      * Gets Hub CA list from MCM Server
      *
      * @param opts {object}
-     * @param opts.envId {string}
      * @param opts.dfspId {string}
      */
-    async getHubCAS(opts) {
-        const url = `/environments/${opts.envId}/hub/cas`;
-        return this._mcmServerRequest.get(url);
-    }
-
-    /**
-     * Gets Hub CA from MCM Server
-     *
-     * @param opts {object}
-     * @param opts.envId {string}
-     * @param opts.dfspId {string}
-     */
-    async getRootHubCA(opts) {
-        const url = `/environments/${opts.envId}/ca/rootCert`;
+    async getHubCA(opts) {
+        const url = `/hub/ca`;
         return this._mcmServerRequest.get(url);
     }
 
@@ -50,10 +37,9 @@ class HubCertificateModel {
      * Gets Hub Client CSRs and certificates from MCM Server
      *
      * @param opts {object}
-     * @param opts.envId {string}
      */
     async getCertificates(opts) {
-        const url = `/environments/${opts.envId}/dfsps/${this._dfspId}/enrollments/outbound`;
+        const url = `/dfsps/${this._dfspId}/enrollments/outbound`;
         return this._mcmServerRequest.get(url);
     }
 
@@ -61,10 +47,9 @@ class HubCertificateModel {
      * Gets Hub server certificates from MCM Server
      *
      * @param opts {object}
-     * @param opts.envId {string}
      */
     async getServerCertificates(opts) {
-        const url = `/environments/${opts.envId}/hub/servercerts`;
+        const url = `/hub/servercerts`;
         return this._mcmServerRequest.get(url);
     }
 
@@ -73,10 +58,9 @@ class HubCertificateModel {
      *
      * @param opts {Object}
      * @param [opts.entry] {object}
-     * @param opts.envId {string}
      */
     async uploadServerCertificate(opts) {
-        const url = `/environments/${opts.envId}/dfsps/${this._dfspId}/enrollments/outbound/${opts.enId}/certificate`;
+        const url = `/dfsps/${this._dfspId}/enrollments/outbound/${opts.enId}/certificate`;
         return this._mcmServerRequest.post(url, opts.entry);
     }
 }

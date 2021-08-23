@@ -28,32 +28,29 @@ class DFSPCertificateModel {
      *
      * @param opts {object}
      * @param opts.csr {object}
-     * @param opts.envId {string}
      */
     async uploadCSR(opts) {
-        const url = `/environments/${opts.envId}/dfsps/${this._dfspId}/enrollments/inbound`;
+        const url = `/dfsps/${this._dfspId}/enrollments/inbound`;
         return this._mcmServerRequest.post(url, { clientCSR: opts.csr });
     }
 
     /**
      *
      * @param {object} opts
-     * @param {number} opts.envId
      * @param {number} opts.inboundEnrollmentId
      */
     async signInboundEnrollment(opts) {
-        const url = `/environments/${opts.envId}/dfsps/${this._dfspId}/enrollments/inbound/${opts.inboundEnrollmentId}/sign`;
+        const url = `/dfsps/${this._dfspId}/enrollments/inbound/${opts.inboundEnrollmentId}/sign`;
         return this._mcmServerRequest.post(url, {});
     }
 
     /**
      *
      * @param {object} opts
-     * @param {number} opts.envId
      * @param {number} opts.inboundEnrollmentId
      */
     async getClientCertificate(opts) {
-        const url = `/environments/${opts.envId}/dfsps/${this._dfspId}/enrollments/inbound/${opts.inboundEnrollmentId}`;
+        const url = `/dfsps/${this._dfspId}/enrollments/inbound/${opts.inboundEnrollmentId}`;
         return this._mcmServerRequest.get(url);
     }
 
@@ -75,11 +72,10 @@ class DFSPCertificateModel {
      * Gets uploaded DFSP CSRs and certificates from MCM Server
      *
      * @param opts {object}
-     * @param opts.envId {string}
      * @param opts.dfspId {string}
      */
     async getCertificates(opts) {
-        const url = `/environments/${opts.envId}/dfsps/${this._dfspId}/enrollments/inbound`;
+        const url = `/dfsps/${this._dfspId}/enrollments/inbound`;
         return this._mcmServerRequest.get(url);
     }
 
@@ -87,11 +83,10 @@ class DFSPCertificateModel {
      * Gets uploaded DFSP CA from MCM Server
      *
      * @param opts {object}
-     * @param opts.envId {string}
      * @param opts.dfspId {string}
      */
     async getDFSPCA(opts) {
-        const url = `/environments/${opts.envId}/dfsps/${this._dfspId}/ca`;
+        const url = `/dfsps/${this._dfspId}/ca`;
         return this._mcmServerRequest.get(url);
     }
 
@@ -99,23 +94,19 @@ class DFSPCertificateModel {
      * Uploads DFSP CA Root and Intermediate certificates to MCM Server
      *
      * @param opts {Object}
-     * @param [opts.entry] {object}
-     * @param opts.envId {string}
      */
     async uploadDFSPCA(opts) {
-        const url = `/environments/${opts.envId}/dfsps/${this._dfspId}/ca`;
-        return this._mcmServerRequest.post(url, opts.entry);
+        const url = `/dfsps/${this._dfspId}/ca`;
+        return this._mcmServerRequest.post(url, opts);
     }
 
     /**
      * Get DFSP Server Certificate, Root and Intermediate certificates to MCM Server
      *
      * @param opts {Object}
-     * @param [opts.entry] {object}
-     * @param opts.envId {string}
      */
     async getDFSPServerCertificates(opts) {
-        const url = `/environments/${opts.envId}/dfsps/${this._dfspId}/servercerts`;
+        const url = `/dfsps/${this._dfspId}/servercerts`;
         return this._mcmServerRequest.get(url);
     }
 
@@ -123,57 +114,49 @@ class DFSPCertificateModel {
      * Uploads DFSP Server Certificate, Root and Intermediate certificates to MCM Server
      *
      * @param opts {Object}
-     * @param [opts.entry] {object}
-     * @param opts.envId {string}
      */
     async uploadServerCertificates(opts) {
-        const url = `/environments/${opts.envId}/dfsps/${this._dfspId}/servercerts`;
-        return this._mcmServerRequest.post(url, opts.entry);
+        const url = `/dfsps/${this._dfspId}/servercerts`;
+        return this._mcmServerRequest.post(url, opts);
     }
 
     /**
      * Uploads DFSP JWS Certificate, Root and Intermediate certificates to MCM Server
      *
      * @param opts {Object}
-     * @param [opts.entry] {object}
-     * @param opts.envId {string}
      */
     async uploadJWS(opts) {
-        const url = `/environments/${opts.envId}/dfsps/${this._dfspId}/jwscerts`;
-        return this._mcmServerRequest.post(url, opts.entry);
+        const url = `/dfsps/${this._dfspId}/jwscerts`;
+        return this._mcmServerRequest.post(url, opts);
     }
 
     /**
      * Uploads DFSP JWS Certificate, Root and Intermediate certificates to MCM Server
      *
      * @param opts {Object}
-     * @param [opts.entry] {object}
-     * @param opts.envId {string}
      */
     async updateJWS(opts) {
-        const url = `/environments/${opts.envId}/dfsps/${this._dfspId}/jwscerts`;
-        return this._mcmServerRequest.put(url, opts.entry);
+        const url = `/dfsps/${this._dfspId}/jwscerts`;
+        return this._mcmServerRequest.put(url, opts);
     }
 
     /**
      * Deletes DFSP JWS Certificate from MCM Server
      *
      * @param opts {Object}
-     * @param opts.envId {string}
      */
     async deleteJWS(opts) {
-        const url = `/environments/${opts.envId}/dfsps/${this._dfspId}/jwscerts`;
-        return this._mcmServerRequest.delete(url, opts.entry);
+        const url = `/dfsps/${this._dfspId}/jwscerts`;
+        return this._mcmServerRequest.delete(url, opts);
     }
 
     /**
      * Get DFSP JWS Certificate, Root and Intermediate certificates from MCM Server
      *
      * @param opts {Object}
-     * @param opts.envId {string}
      */
     async getDFSPJWSCertificates(opts) {
-        const url = `/environments/${opts.envId}/dfsps/${this._dfspId}/jwscerts`;
+        const url = `/dfsps/${this._dfspId}/jwscerts`;
         return this._mcmServerRequest.get(url);
     }
 
@@ -181,10 +164,9 @@ class DFSPCertificateModel {
      * Get *all* JWS Certificate, Root and Intermediate certificates from MCM Server
      *
      * @param opts {Object}
-     * @param opts.envId {string}
      */
     async getAllJWSCertificates(opts) {
-        const url = `/environments/${opts.envId}/dfsps/jwscerts`;
+        const url = `/dfsps/jwscerts`;
         return this._mcmServerRequest.get(url);
     }
 }
