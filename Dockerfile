@@ -1,6 +1,6 @@
-FROM node:12.16.1-alpine as builder
+FROM node:lts-alpine as builder
 
-RUN apk add --no-cache git python build-base
+RUN apk add --no-cache git python3 build-base
 
 EXPOSE 3000
 
@@ -14,10 +14,9 @@ COPY ./src/package-lock.json ./package-lock.json
 COPY ./src/lib/log/package.json ./lib/log/package.json
 COPY ./src/lib/model/package.json ./lib/model/package.json
 COPY ./src/lib/requests/package.json ./lib/requests/package.json
-RUN npm install
-RUN npm ci
+RUN npm ci --production
 
-FROM node:12.16.1-alpine
+FROM node:lts-alpine
 
 ARG BUILD_DATE
 ARG VCS_URL
@@ -38,7 +37,6 @@ LABEL org.label-schema.version=$VERSION
 # COPY ./src /src
 
 COPY --from=builder ~/src/ /src
-RUN npm prune --production
 COPY ./src /src
 
 CMD ["node", "/src/index.js"]
