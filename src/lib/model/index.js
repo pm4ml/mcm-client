@@ -14,9 +14,8 @@
 const DFSPEndpointModel = require('./DFSPEndpointModel');
 const HubEndpointModel = require('./HubEndpointModel');
 const HubCertificateModel = require('./HubCertificateModel');
-const EnvironmentModel = require('./EnvironmentModel');
 const DFSPCertificateModel = require('./DFSPCertificateModel');
-const DFSPEnvConfigModel = require('./DFSPEnvConfigModel');
+const DFSPConfigModel = require('./DFSPConfigModel');
 const Storage = require('./Storage');
 const MonetaryZoneModel = require('./MonetaryZoneModel');
 const AuthModel = require('./AuthModel');
@@ -26,10 +25,9 @@ module.exports = {
     DFSPEndpointModel,
     HubEndpointModel,
     HubCertificateModel,
-    EnvironmentModel,
     Storage,
     DFSPCertificateModel,
-    DFSPEnvConfigModel,
+    DFSPConfigModel,
     MonetaryZoneModel,
     AuthModel,
     ConnectorModel,

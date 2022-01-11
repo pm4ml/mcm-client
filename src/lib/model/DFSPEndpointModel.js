@@ -25,12 +25,11 @@ class DFSPEndpointModel {
     /**
      *
      * @param opts {Object}
-     * @param opts.envId {string}
      * @param opts.epId {string}
      */
     async findById(opts) {
-        // TODO: We don't need envId and dfspId here as there is no combined envId+dfspId+epId primary key on Mgmt API side
-        return this._hubRequest.get(`/environments/${opts.envId}/dfsps/${this._dfspId}/endpoints/${opts.epId}`);
+        // TODO: We don't need dfspId here as there is no combined dfspId+epId primary key on Mgmt API side
+        return this._hubRequest.get(`/dfsps/${this._dfspId}/endpoints/${opts.epId}`);
     }
 
     /**
@@ -39,10 +38,9 @@ class DFSPEndpointModel {
      * @param [opts.direction] {string}
      * @param [opts.type] {string}
      * @param [opts.state] {string}
-     * @param opts.envId {string}
      */
     async findAll(opts) {
-        const response = await this._hubRequest.get(`/environments/${opts.envId}/dfsps/${this._dfspId}/endpoints`);
+        const response = await this._hubRequest.get(`/dfsps/${this._dfspId}/endpoints`);
         const filters = [];
 
         if (opts.type) {
@@ -71,7 +69,6 @@ class DFSPEndpointModel {
      * @param opts.type {Enum 'IP' or 'URL'}
      * @param [opts.ports] {Array<number>}
      * @param opts.address {string}
-     * @param opts.envId {string}
      */
 
     async create(opts) {
@@ -84,7 +81,7 @@ class DFSPEndpointModel {
             URL: 'urls',
         };
 
-        let url = `/environments/${opts.envId}/dfsps/${this._dfspId}/endpoints`;
+        let url = `/dfsps/${this._dfspId}/endpoints`;
         url += `/${directionUrlPart[opts.direction]}`;
         url += `/${typeUrlPart[opts.type]}`;
 
@@ -107,11 +104,10 @@ class DFSPEndpointModel {
     /**
      *
      * @param opts {Object}
-     * @param opts.envId {string}
      * @param opts.epId {string}
      */
     async delete(opts) {
-        return this._hubRequest.delete(`/environments/${opts.envId}/dfsps/${this._dfspId}/endpoints/${opts.epId}`);
+        return this._hubRequest.delete(`/dfsps/${this._dfspId}/endpoints/${opts.epId}`);
     }
 
     /**
@@ -123,7 +119,6 @@ class DFSPEndpointModel {
      * @param [opts.epId] {string}
      * @param [opts.ports] {Array<number>}
      * @param opts.address {string}
-     * @param opts.envId {string}
      */
     async update(opts) {
         const directionUrlPart = {
@@ -135,7 +130,7 @@ class DFSPEndpointModel {
             URL: 'urls',
         };
 
-        let url = `/environments/${opts.envId}/dfsps/${this._dfspId}/endpoints`;
+        let url = `/dfsps/${this._dfspId}/endpoints`;
         url += `/${directionUrlPart[opts.direction]}`;
         url += `/${typeUrlPart[opts.type]}`;
         url += `/${opts.epId}`;

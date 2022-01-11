@@ -25,12 +25,10 @@ class HubEndpointModel {
     /**
      *
      * @param opts {Object}
-     * @param opts.envId {string}
      * @param opts.epId {string}
      */
     async findById(opts) {
-        // TODO: We don't need envId here as there is no combined envId+epId primary key on Mgmt API side
-        return this._mcmServerRequest.get(`/environments/${opts.envId}/hub/endpoints/${opts.epId}`);
+        return this._mcmServerRequest.get(`/hub/endpoints/${opts.epId}`);
     }
 
     /**
@@ -39,10 +37,9 @@ class HubEndpointModel {
      * @param [opts.direction] {string}
      * @param [opts.type] {string}
      * @param [opts.state] {string}
-     * @param opts.envId {string}
      */
     async findAll(opts) {
-        const response = await this._mcmServerRequest.get(`/environments/${opts.envId}/hub/endpoints`);
+        const response = await this._mcmServerRequest.get(`/hub/endpoints`);
         const filters = [];
 
         if (opts.type) {

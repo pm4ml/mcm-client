@@ -13,7 +13,7 @@
 
 const { Requests } = require('../requests');
 
-class DFSPEnvConfigModel {
+class DFSPConfigModel {
     constructor(opts) {
         this._dfspId = opts.dfspId;
         this._mcmServerRequest = new Requests({
@@ -26,25 +26,27 @@ class DFSPEnvConfigModel {
      * Gets DFSPs details from MCM Server
      *
      * @param opts {object}
-     * @param opts.envId {string}
      * @param opts.dfspId {string}
      */
     async getDFSPList(opts) {
-        const url = `/environments/${opts.envId}/dfsps`;
+        const url = `/dfsps`;
         return this._mcmServerRequest.get(url);
+    }
+
+    async findStatus() {
+        return this._hubRequest.get(`/dfsps/${this._dfspId}/status`);
     }
 
     /**
      * Gets DFSPs details from MCM Server by MonetaryZone
      *
      * @param opts {object}
-     * @param opts.envId {string}
      * @param opts.monetaryZoneId {string}
      */
     async getDFSPListByMonetaryZone(opts) {
-        const url = `/environments/${opts.envId}/monetaryzones/${opts.monetaryZoneId}/dfsps`;
+        const url = `/monetaryzones/${opts.monetaryZoneId}/dfsps`;
         return this._mcmServerRequest.get(url);
     }
 }
 
-module.exports = DFSPEnvConfigModel;
+module.exports = DFSPConfigModel;
