@@ -1,4 +1,4 @@
-FROM node:lts-alpine as builder
+FROM node:16-alpine as builder
 
 RUN apk add --no-cache git python3 build-base
 
@@ -16,7 +16,7 @@ COPY ./src/lib/model/package.json ./lib/model/package.json
 COPY ./src/lib/requests/package.json ./lib/requests/package.json
 RUN npm ci --production
 
-FROM node:lts-alpine
+FROM node:16-alpine
 
 ARG BUILD_DATE
 ARG VCS_URL
