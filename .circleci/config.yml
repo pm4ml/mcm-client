@@ -40,12 +40,12 @@ executors:
   default-docker:
     working_directory: /home/circleci/project/git
     docker:
-      - image: node:12.19.0-alpine
+      - image: node:16-alpine
 
   default-machine:
     working_directory: /home/circleci/project/git
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-2004:202010-01
 
 ##
 # Jobs
@@ -188,7 +188,7 @@ workflows:
   build_and_test:
     jobs:
       - setup:
-          context: wmt
+          context: pm4ml-ci
           filters:
             branches:
               ignore:
@@ -196,7 +196,7 @@ workflows:
                 - /bugfix*/
                 - /hotfix*/
       - test-unit:
-          context: wmt
+          context: pm4ml-ci
           requires:
             - setup
           filters:
@@ -206,7 +206,7 @@ workflows:
                 - /bugfix*/
                 - /hotfix*/
 #      - test-integration:
-#          context: wmt
+#          context: pm4ml-ci
 #          requires:
 #            - setup
 #          filters:
@@ -216,7 +216,7 @@ workflows:
 #                - /bugfix*/
 #                - /hotfix*/
       - lint:
-          context: wmt
+          context: pm4ml-ci
           requires:
             - setup
           filters:
@@ -226,7 +226,7 @@ workflows:
                 - /bugfix*/
                 - /hotfix*/
       - audit-licenses:
-          context: wmt
+          context: pm4ml-ci
           requires:
             - setup
           filters:
@@ -236,7 +236,7 @@ workflows:
                 - /bugfix*/
                 - /hotfix*/
       - build-local:
-          context: wmt
+          context: pm4ml-ci
           filters:
             branches:
               ignore:
