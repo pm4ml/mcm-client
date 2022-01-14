@@ -2,7 +2,7 @@
   "name": "@pm4ml/mcm-client",
   "version": "2.0.0",
   "description": "Client service for Connection Manager API",
-  "main": "index.js",
+  "main": "src/index.js",
   "author": "Yevhen Kyriukha, ModusBox Inc.",
   "contributors": [
     "Yevhen Kyriukha <yevhen.kyriukha@modusbox.com>",
@@ -18,10 +18,10 @@
     }
   },
   "scripts": {
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "test": "jest --ci --reporters=default --reporters=jest-junit --env=node test/unit",
-    "test:int": "jest --ci --reporters=default --reporters=jest-junit --env=node test/integration --forceExit"
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "test": "jest --ci --reporters=default --reporters=jest-junit --env=node src/test/unit",
+    "test:int": "jest --ci --reporters=default --reporters=jest-junit --env=node src/test/integration --forceExit"
   },
   "dependencies": {
     "@mojaloop/sdk-standard-components": "^15.13.0",
