@@ -1,5 +1,5 @@
 {
-  "name": "@modusbox/mcm-client",
+  "name": "@pm4ml/mcm-client",
   "version": "2.0.0",
   "description": "Client service for Connection Manager API",
   "main": "index.js",

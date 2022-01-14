@@ -1,0 +1,30 @@
+name: Node.js Package
+
+on:
+  release:
+    types: [created]
+  push:
+    branches:
+    - '**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    # Setup .npmrc file to publish to npm
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '12.x'
+        registry-url: 'https://registry.npmjs.org'
+    - run: npm ci
+    - if: ${{ github.event_name != 'release' }}
+      run: |
+        CURRENT_VERSION="$(jq -r '.version' package.json)"
+        NEW_VERSION="$CURRENT_VERSION-git-$(git rev-parse HEAD)"
+        echo "New version: $NEW_VERSION"
+        npm version --no-git-tag-version "$NEW_VERSION"
+    - run: npm run build
+    - run: npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
