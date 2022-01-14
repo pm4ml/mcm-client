@@ -41,7 +41,7 @@
     "node-vault": "^0.9.22",
     "tmp-promise": "^3.0.3",
     "uuid": "^8.3.2",
-    "ws": "^8.4.0"
+    "ws": "^8.4.2"
   },
   "devDependencies": {
     "@types/jest": "^27.4.0",
@@ -53,6 +53,6 @@
     "mockdate": "^3.0.5",
     "nock": "^13.2.2",
     "openapi-response-validator": "^10.0.0",
-    "supertest": "^6.2.0"
+    "supertest": "^6.2.1"
   }
 }
