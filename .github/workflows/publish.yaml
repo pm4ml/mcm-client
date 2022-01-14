@@ -18,12 +18,6 @@ jobs:
         node-version: '12.x'
         registry-url: 'https://registry.npmjs.org'
     - run: npm ci
-    - if: ${{ github.event_name != 'release' }}
-      run: |
-        CURRENT_VERSION="$(jq -r '.version' package.json)"
-        NEW_VERSION="$CURRENT_VERSION-git-$(git rev-parse HEAD)"
-        echo "New version: $NEW_VERSION"
-        npm version --no-git-tag-version "$NEW_VERSION"
     - run: npm publish --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
