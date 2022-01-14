@@ -1,6 +1,6 @@
 {
   "name": "@pm4ml/mcm-client",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Client service for Connection Manager API",
   "main": "src/index.js",
   "author": "Yevhen Kyriukha, ModusBox Inc.",
