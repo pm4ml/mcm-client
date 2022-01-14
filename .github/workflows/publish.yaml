@@ -24,6 +24,6 @@ jobs:
         NEW_VERSION="$CURRENT_VERSION-git-$(git rev-parse HEAD)"
         echo "New version: $NEW_VERSION"
         npm version --no-git-tag-version "$NEW_VERSION"
-    - run: npm publish
+    - run: npm publish --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

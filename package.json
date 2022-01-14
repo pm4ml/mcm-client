@@ -10,7 +10,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/modusintegration/mcm-client.git"
+    "url": "git://github.com/pm4ml/mcm-client.git"
   },
   "husky": {
     "hooks": {
