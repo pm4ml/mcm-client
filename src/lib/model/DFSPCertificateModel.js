@@ -11,7 +11,6 @@
  *       Yevhen Kyriukha - yevhen.kyriukha@modusbox.com                   *
  ************************************************************************* */
 
-const { EmbeddedPKIEngine } = require('mojaloop-connection-manager-pki-engine');
 const { Requests } = require('../requests');
 
 class DFSPCertificateModel {
@@ -52,20 +51,6 @@ class DFSPCertificateModel {
     async getClientCertificate(opts) {
         const url = `/dfsps/${this._dfspId}/enrollments/inbound/${opts.inboundEnrollmentId}`;
         return this._mcmServerRequest.get(url);
-    }
-
-    /**
-     * Creates DFSP CSR
-     *
-     * @param opts {object}
-     * @param opts.csrParameters {object}
-     */
-    async createCSR(opts) {
-        // Constructor parameters not needed for creating a CSR. Maybe createCSR could be static.
-        const embeddedPKIEngine = new EmbeddedPKIEngine();
-
-        const { csrParameters } = opts;
-        return embeddedPKIEngine.createCSR(csrParameters.parameters, csrParameters.privateKeyLength, csrParameters.privateKeyAlgorithm);
     }
 
     /**
