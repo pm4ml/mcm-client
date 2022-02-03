@@ -38,8 +38,8 @@ class HubCertificateModel {
      *
      * @param opts {object}
      */
-    async getCertificates(opts) {
-        const url = `/dfsps/${this._dfspId}/enrollments/outbound`;
+    async getUnprocessedCerts(opts) {
+        const url = `/dfsps/${this._dfspId}/enrollments/outbound?state=CSR_LOADED`;
         return this._mcmServerRequest.get(url);
     }
 
