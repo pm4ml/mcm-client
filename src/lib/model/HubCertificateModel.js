@@ -25,20 +25,16 @@ class HubCertificateModel {
     /**
      * Gets Hub CA list from MCM Server
      *
-     * @param opts {object}
-     * @param opts.dfspId {string}
      */
-    async getHubCA(opts) {
+    async getHubCA() {
         const url = `/hub/ca`;
         return this._mcmServerRequest.get(url);
     }
 
     /**
      * Gets Hub Client CSRs and certificates from MCM Server
-     *
-     * @param opts {object}
      */
-    async getUnprocessedCerts(opts) {
+    async getUnprocessedCerts() {
         const url = `/dfsps/${this._dfspId}/enrollments/outbound?state=CSR_LOADED`;
         return this._mcmServerRequest.get(url);
     }
@@ -46,9 +42,8 @@ class HubCertificateModel {
     /**
      * Gets Hub server certificates from MCM Server
      *
-     * @param opts {object}
      */
-    async getServerCertificates(opts) {
+    async getServerCertificates() {
         const url = `/hub/servercerts`;
         return this._mcmServerRequest.get(url);
     }
@@ -57,6 +52,7 @@ class HubCertificateModel {
      * Uploads DFSP Server Certificate, Root and Intermediate certificates to MCM Server
      *
      * @param opts {Object}
+     * @param [opts.enId] {string}
      * @param [opts.entry] {object}
      */
     async uploadServerCertificate(opts) {

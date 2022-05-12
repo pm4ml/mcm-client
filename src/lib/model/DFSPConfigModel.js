@@ -25,10 +25,8 @@ class DFSPConfigModel {
     /**
      * Gets DFSPs details from MCM Server
      *
-     * @param opts {object}
-     * @param opts.dfspId {string}
      */
-    async getDFSPList(opts) {
+    async getDFSPList() {
         const url = `/dfsps`;
         return this._mcmServerRequest.get(url);
     }

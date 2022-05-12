@@ -67,8 +67,7 @@ class DFSPEndpointModel {
      * @param opts {Object}
      * @param opts.direction {Enum 'INGRESS' or 'EGRESS'}
      * @param opts.type {Enum 'IP' or 'URL'}
-     * @param [opts.ports] {Array<number>}
-     * @param opts.address {string}
+     * @param [opts.ipList] {Array}
      */
 
     async create(opts) {
@@ -88,10 +87,7 @@ class DFSPEndpointModel {
         const entry = {};
 
         if (opts.type === 'IP') {
-            entry.value = {
-                address: opts.address,
-                ports: opts.ports,
-            };
+            entry.ipList = opts.ipList;
         } else if (opts.type === 'URL') {
             entry.value = {
                 url: opts.url,

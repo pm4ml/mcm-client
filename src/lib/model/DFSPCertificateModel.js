@@ -26,7 +26,7 @@ class DFSPCertificateModel {
      * Uploads DFSP CSR to MCM Server
      *
      * @param opts {object}
-     * @param opts.csr {object}
+     * @param opts.csr {string}
      */
     async uploadCSR(opts) {
         const url = `/dfsps/${this._dfspId}/enrollments/inbound`;
@@ -56,10 +56,8 @@ class DFSPCertificateModel {
     /**
      * Gets uploaded DFSP CSRs and certificates from MCM Server
      *
-     * @param opts {object}
-     * @param opts.dfspId {string}
      */
-    async getCertificates(opts) {
+    async getCertificates() {
         const url = `/dfsps/${this._dfspId}/enrollments/inbound`;
         return this._mcmServerRequest.get(url);
     }
@@ -67,10 +65,8 @@ class DFSPCertificateModel {
     /**
      * Gets uploaded DFSP CA from MCM Server
      *
-     * @param opts {object}
-     * @param opts.dfspId {string}
      */
-    async getDFSPCA(opts) {
+    async getDFSPCA() {
         const url = `/dfsps/${this._dfspId}/ca`;
         return this._mcmServerRequest.get(url);
     }
@@ -87,10 +83,8 @@ class DFSPCertificateModel {
 
     /**
      * Get DFSP Server Certificate, Root and Intermediate certificates to MCM Server
-     *
-     * @param opts {Object}
      */
-    async getDFSPServerCertificates(opts) {
+    async getDFSPServerCertificates() {
         const url = `/dfsps/${this._dfspId}/servercerts`;
         return this._mcmServerRequest.get(url);
     }
@@ -137,20 +131,16 @@ class DFSPCertificateModel {
 
     /**
      * Get DFSP JWS Certificate, Root and Intermediate certificates from MCM Server
-     *
-     * @param opts {Object}
      */
-    async getDFSPJWSCertificates(opts) {
+    async getDFSPJWSCertificates() {
         const url = `/dfsps/${this._dfspId}/jwscerts`;
         return this._mcmServerRequest.get(url);
     }
 
     /**
      * Get *all* JWS Certificate, Root and Intermediate certificates from MCM Server
-     *
-     * @param opts {Object}
      */
-    async getAllJWSCertificates(opts) {
+    async getAllJWSCertificates() {
         const url = `/dfsps/jwscerts`;
         return this._mcmServerRequest.get(url);
     }
