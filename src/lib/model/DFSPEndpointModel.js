@@ -68,6 +68,7 @@ class DFSPEndpointModel {
      * @param opts.direction {Enum 'INGRESS' or 'EGRESS'}
      * @param opts.type {Enum 'IP' or 'URL'}
      * @param [opts.ipList] {Array}
+     * @param [opts.url] {string}
      */
 
     async create(opts) {

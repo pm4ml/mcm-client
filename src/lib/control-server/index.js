@@ -30,7 +30,10 @@ const assert = require('assert').strict;
 const ws = require('ws');
 const jsonPatch = require('fast-json-patch');
 
-const randomPhrase = require('@internal/randomphrase');
+const uniqueID = (() => {
+  let id = 0;
+  return () => ++id;
+})();
 
 /** ************************************************************************
  * The message protocol messages, verbs, and errors
@@ -64,7 +67,7 @@ const EVENT = {
  ************************************************************************ */
 const serialise = JSON.stringify;
 const deserialise = JSON.parse;
-const buildMsg = (verb, msg, data, id = randomPhrase()) => serialise({
+const buildMsg = (verb, msg, data, id = uniqueID()) => serialise({
     verb,
     msg,
     data,
