@@ -66,7 +66,6 @@ class DFSPEndpointModel {
      *
      * @param opts {Object}
      * @param opts.direction {Enum 'INGRESS' or 'EGRESS'}
-     * @param opts.type {Enum 'IP' or 'URL'}
      * @param [opts.ipList] {Array}
      * @param [opts.url] {string}
      */
@@ -76,23 +75,16 @@ class DFSPEndpointModel {
             INGRESS: 'ingress',
             EGRESS: 'egress',
         };
-        const typeUrlPart = {
-            IP: 'ips',
-            URL: 'urls',
-        };
 
         let url = `/dfsps/${this._dfspId}/endpoints`;
         url += `/${directionUrlPart[opts.direction]}`;
-        url += `/${typeUrlPart[opts.type]}`;
 
         const entry = {};
 
         if (opts.type === 'IP') {
             entry.ipList = opts.ipList;
         } else if (opts.type === 'URL') {
-            entry.value = {
-                url: opts.url,
-            };
+            entry.url = opts.url;
         }
 
         return this._hubRequest.post(url, entry);
