@@ -81,9 +81,9 @@ class DFSPEndpointModel {
 
         const entry = {};
 
-        if (opts.type === 'IP') {
+        if (opts.direction === 'EGRESS') {
             entry.ipList = opts.ipList;
-        } else if (opts.type === 'URL') {
+        } else if (opts.direction === 'INGRESS') {
             entry.url = opts.url;
         }
 
