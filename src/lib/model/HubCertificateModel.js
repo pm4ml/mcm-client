@@ -33,9 +33,11 @@ class HubCertificateModel {
 
     /**
      * Gets Hub Client CSRs and certificates from MCM Server
+     *
+     * @param [state] {('CERT_SIGNED'|'CSR_LOADED')}
      */
-    async getUnprocessedCerts() {
-        const url = `/dfsps/${this._dfspId}/enrollments/outbound?state=CSR_LOADED`;
+    async getClientCerts(state) {
+        const url = `/dfsps/${this._dfspId}/enrollments/outbound${state ? `?state=${state}` : ''}`;
         return this._mcmServerRequest.get(url);
     }
 
