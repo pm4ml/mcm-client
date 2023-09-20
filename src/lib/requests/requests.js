@@ -12,8 +12,8 @@
  ************************************************************************* */
 
 const http = require('http');
-const { request } = require('@mojaloop/sdk-standard-components');
 const retry = require('async-retry');
+const { request } = require('@mojaloop/sdk-standard-components');
 const { buildUrl, throwOrJson, HTTPResponseError } = require('./common');
 const { JWTSingleton } = require('./jwt');
 
@@ -41,9 +41,9 @@ class Requests {
      *
      * @returns {object} - headers object for use in requests to mojaloop api endpoints
      */
-    async _buildHeaders() {
+    _buildHeaders() {
         const JWT = new JWTSingleton();
-        const token = await JWT.getToken();
+        const token = JWT.getToken();
 
         const headers = {
             'Content-Type': 'application/json',
@@ -69,7 +69,7 @@ class Requests {
 
     async get(url) {
         return await retry(async () => {
-            const headers = await this._buildHeaders();
+            const headers = this._buildHeaders();
             const reqOpts = {
                 method: 'GET',
                 uri: buildUrl(this.hubEndpoint, url),
@@ -92,7 +92,7 @@ class Requests {
 
     async delete(url) {
         return await retry(async () => {
-            const headers = await this._buildHeaders();
+            const headers = this._buildHeaders();
             const reqOpts = {
                 method: 'DELETE',
                 uri: buildUrl(this.hubEndpoint, url),
@@ -114,7 +114,7 @@ class Requests {
 
     async put(url, body) {
         return await retry(async () => {
-            const headers = await this._buildHeaders();
+            const headers = this._buildHeaders();
             const reqOpts = {
                 method: 'PUT',
                 uri: buildUrl(this.hubEndpoint, url),
@@ -137,7 +137,7 @@ class Requests {
 
     async post(url, bodyParam) {
         return await retry(async () => {
-            const headers = await this._buildHeaders();
+            const headers = this._buildHeaders();
             const body = JSON.stringify(bodyParam);
             const reqOpts = {
                 method: 'POST',

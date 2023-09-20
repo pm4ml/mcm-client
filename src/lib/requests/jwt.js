@@ -1,10 +1,12 @@
 /* eslint-disable */
 // TODO: Remove previous line and work through linting issues at next edit
 
+const https = require('https');
 const querystring = require('querystring');
 const { request } = require('@mojaloop/sdk-standard-components');
-const http = require('http');
-const { buildUrl, throwOrJson } = require('./common');
+const { ERROR_MESSAGES, OIDC_TOKEN_ROUTE, OIDC_GRANT_TYPE  } = require('../constants');
+const { oidcPayloadDto } = require('../dto');
+const { buildUrl } = require('./common');
 
 class JWTSingleton {
     constructor(opts) {
@@ -15,12 +17,15 @@ class JWTSingleton {
         if (opts.auth.enabled) {
             this._logger = opts.logger;
             // make sure we keep alive connections to the backend
-            this.agent = new http.Agent({
+            this.agent = new https.Agent({
                 keepAlive: true,
             });
-            this.transportScheme = 'http';
-            // Switch or peer DFSP endpoint
-            this._hubEndpoint = `${this.transportScheme}://${opts.hubEndpoint}`;
+            this.transportScheme = 'https'; // todo: clarify, why protocol is separated from endpoint?
+
+            this._hubIamProviderUrl = `${this.transportScheme}://${opts.hubIamProviderUrl}`;
+            this._oidcTokenRoute = opts.oidcTokenRoute || OIDC_TOKEN_ROUTE;
+            this._oidcGrantType = opts.oidcGrantType || OIDC_GRANT_TYPE;
+            this._oidcScope = opts.oidcScope; // e.g. 'email profile'
         }
 
         JWTSingleton.instance = this;
@@ -32,69 +37,51 @@ class JWTSingleton {
         if (!this._auth.enabled) {
             return;
         }
-        const url = '/login';
+        const route = this._oidcTokenRoute;
         const headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
             Accept: 'application/json',
         };
 
+        // todo: clarify, why do we need this header
         if (process.env.HOST_HEADER_MCM_SERVER) {
             headers.host = process.env.HOST_HEADER_MCM_SERVER;
         }
 
-        const postData = querystring.stringify({
-            username: this._auth.creds.user,
-            password: this._auth.creds.pass,
-        });
+        const payload = oidcPayloadDto(this._auth, this._oidcGrantType, this._oidcScope);
+        const postData = querystring.stringify(payload);
 
-        const result = await this.post(url, postData, headers);
-        if (result.ok) {
-            this.token = result.token;
-        } else {
-            throw new Error('Login fails');
-        }
+        this.token = await this.post(route, postData, headers);
     }
 
-    async getToken() {
+    getToken() {
         return this.token;
     }
 
-    async post(url, body, headers) {
-        const reqOpts = {
-            method: 'POST',
-            uri: buildUrl(this._hubEndpoint, url),
-            headers,
-            body,
-        };
-
-        this._logger.push({ reqOpts }).log('Executing Login');
-        return request({ ...reqOpts, agent: this.agent })
-            // throwOrJson is missing the headers, so I need to
-            // first check if the token of login is comming
-            .then(this._hasJWT)
-            .then(throwOrJson)
-            .catch((e) => {
-                this._logger.push({ e }).log('Error Login');
-                throw e;
-            });
-    }
-
-    async _hasJWT(res) {
-        const setCookieHeader = res.headers['set-cookie'];
-        console.log('setCookieHeader::', setCookieHeader);
-        if (setCookieHeader) {
-            const accessToken = setCookieHeader
-                .find((_cookie) => _cookie.includes('MCM-API_ACCESS_TOKEN'))// TODO: extract to process.env
-                .split(';')
-                .find((_cookie) => _cookie.includes('MCM-API_ACCESS_TOKEN'));
-            // overrides data with the token
-            res.data = {
-                ok: res.data.ok,
-                token: accessToken,
+    async post(route, body, headers) {
+        try {
+            const reqOpts = {
+                method: 'POST',
+                uri: buildUrl(this._hubIamProviderUrl, route),
+                headers,
+                body,
             };
-            return Promise.resolve(res);
+
+            this._logger.push({ reqOpts }).log('Executing Login');
+            const { statusCode,  data } = await request({ ...reqOpts, agent: this.agent });
+
+            if (statusCode !== 200) {
+                throw new Error(ERROR_MESSAGES.loginErrorInvalidStatusCode)
+            }
+            if (!data?.access_token) {
+                throw new Error(ERROR_MESSAGES.loginErrorNoToken)
+            }
+
+            return data.access_token;
+        } catch (err) {
+            this._logger.push({ err }).log('Error Login');
+            throw err;
         }
-        return Promise.reject(new Error('Invalid login'));
     }
 }
 

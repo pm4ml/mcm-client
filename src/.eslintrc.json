@@ -1,9 +1,14 @@
 {
   "extends": "airbnb-base",
   "env": {
-    "node": true
+    "node": true,
+    "jest": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2022
   },
   "rules": {
-    "indent": ["error", 4]
+    "indent": ["error", 4],
+    "camelcase": "off"
   }
 }
