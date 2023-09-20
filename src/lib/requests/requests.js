@@ -14,7 +14,7 @@
 const http = require('http');
 const retry = require('async-retry');
 const { request } = require('@mojaloop/sdk-standard-components');
-const { buildUrl, throwOrJson, HTTPResponseError } = require('./common');
+const { buildUrl, throwOrJson, makeJsonHeaders, HTTPResponseError } = require('./common');
 const { JWTSingleton } = require('./jwt');
 
 /**
@@ -45,14 +45,7 @@ class Requests {
         const JWT = new JWTSingleton();
         const token = JWT.getToken();
 
-        const headers = {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-        };
-
-        if (process.env.HOST_HEADER_MCM_SERVER) {
-            headers.host = process.env.HOST_HEADER_MCM_SERVER;
-        }
+        const headers = makeJsonHeaders();
 
         if (token) {
             headers.Cookie = token;

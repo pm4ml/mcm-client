@@ -1,18 +1,18 @@
-/* eslint-disable */
-// TODO: Remove previous line and work through linting issues at next edit
-
+/* eslint-disable no-constructor-return, import/no-extraneous-dependencies */
 const https = require('https');
 const querystring = require('querystring');
 const { request } = require('@mojaloop/sdk-standard-components');
-const { ERROR_MESSAGES, OIDC_TOKEN_ROUTE, OIDC_GRANT_TYPE  } = require('../constants');
+
+const { ERROR_MESSAGES, OIDC_TOKEN_ROUTE, OIDC_GRANT_TYPE } = require('../constants');
 const { oidcPayloadDto } = require('../dto');
-const { buildUrl } = require('./common');
+const { buildUrl, makeFormUrlEncodedHeaders } = require('./common');
 
 class JWTSingleton {
     constructor(opts) {
         if (JWTSingleton.instance) {
             return JWTSingleton.instance;
         }
+
         this._auth = opts.auth;
         if (opts.auth.enabled) {
             this._logger = opts.logger;
@@ -38,15 +38,7 @@ class JWTSingleton {
             return;
         }
         const route = this._oidcTokenRoute;
-        const headers = {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            Accept: 'application/json',
-        };
-
-        // todo: clarify, why do we need this header
-        if (process.env.HOST_HEADER_MCM_SERVER) {
-            headers.host = process.env.HOST_HEADER_MCM_SERVER;
-        }
+        const headers = makeFormUrlEncodedHeaders();
 
         const payload = oidcPayloadDto(this._auth, this._oidcGrantType, this._oidcScope);
         const postData = querystring.stringify(payload);
@@ -66,15 +58,17 @@ class JWTSingleton {
                 headers,
                 body,
             };
-
             this._logger.push({ reqOpts }).log('Executing Login');
-            const { statusCode,  data } = await request({ ...reqOpts, agent: this.agent });
+
+            const { statusCode, data } = await request({ ...reqOpts, agent: this.agent });
 
             if (statusCode !== 200) {
-                throw new Error(ERROR_MESSAGES.loginErrorInvalidStatusCode)
+                const errMessage = ERROR_MESSAGES.loginErrorInvalidStatusCode;
+                this._logger.push({ statusCode, data }).log(errMessage);
+                throw new Error(errMessage);
             }
             if (!data?.access_token) {
-                throw new Error(ERROR_MESSAGES.loginErrorNoToken)
+                throw new Error(ERROR_MESSAGES.loginErrorNoToken);
             }
 
             return data.access_token;

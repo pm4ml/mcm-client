@@ -1,6 +1,7 @@
 const sdkSC = require('@mojaloop/sdk-standard-components');
 const { DFSPCertificateModel, AuthModel } = require('../../../lib/model');
 const { JWTSingleton } = require('../../../lib/requests/jwt');
+const { CONTENT_TYPES } = require('../../../lib/constants');
 const mocks = require('../mocks');
 
 jest.mock('@mojaloop/sdk-standard-components', () => ({
@@ -28,7 +29,8 @@ describe('DFSPCertificateModel Tests -->', () => {
 
         expect(sdkSC.request).toHaveBeenCalledTimes(2);
         const [requestArgs] = sdkSC.request.mock.calls[1];
-        const { Cookie } = requestArgs.headers;
+        const { Cookie, 'Content-Type': contentType } = requestArgs.headers;
         expect(Cookie).toBe(token);
+        expect(contentType).toBe(CONTENT_TYPES.json);
     });
 });

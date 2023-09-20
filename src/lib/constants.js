@@ -8,8 +8,14 @@ const ERROR_MESSAGES = Object.freeze({
     oidcPayloadFormatError: 'oidcPayload Format Error',
 });
 
+const CONTENT_TYPES = Object.freeze({
+    json: 'application/json',
+    formUrlEncoded: 'application/x-www-form-urlencoded',
+});
+
 module.exports = {
+    CONTENT_TYPES,
     ERROR_MESSAGES,
-    OIDC_TOKEN_ROUTE,
     OIDC_GRANT_TYPE,
+    OIDC_TOKEN_ROUTE,
 };

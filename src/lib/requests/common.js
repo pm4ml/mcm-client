@@ -12,6 +12,7 @@
  ************************************************************************* */
 
 const util = require('util');
+const { CONTENT_TYPES } = require('../constants');
 
 const respErrSym = Symbol('ResponseErrorDataSym');
 
@@ -65,8 +66,28 @@ const throwOrJson = async (res) => {
     return res.data;
 };
 
+const makeHeaders = (contentType) => {
+    const headers = {
+        'Content-Type': contentType,
+        Accept: CONTENT_TYPES.json,
+    };
+
+    // clarify, why do we need this header
+    if (process.env.HOST_HEADER_MCM_SERVER) {
+        headers.host = process.env.HOST_HEADER_MCM_SERVER;
+    }
+
+    return headers;
+}
+
+const makeJsonHeaders = () => makeHeaders(CONTENT_TYPES.json);
+const makeFormUrlEncodedHeaders = () => makeHeaders(CONTENT_TYPES.formUrlEncoded);
+
 module.exports = {
     HTTPResponseError,
     buildUrl,
     throwOrJson,
+
+    makeJsonHeaders,
+    makeFormUrlEncodedHeaders,
 };

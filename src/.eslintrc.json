@@ -8,7 +8,8 @@
     "ecmaVersion": 2022
   },
   "rules": {
+    "camelcase": "off",
     "indent": ["error", 4],
-    "camelcase": "off"
+    "no-underscore-dangle": "off"
   }
 }
