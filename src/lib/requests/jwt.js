@@ -1,4 +1,5 @@
 /* eslint-disable no-constructor-return, import/no-extraneous-dependencies */
+const http = require('http');
 const https = require('https');
 const querystring = require('querystring');
 const { request } = require('@mojaloop/sdk-standard-components');
@@ -16,16 +17,12 @@ class JWTSingleton {
         this._auth = opts.auth;
         if (opts.auth.enabled) {
             this._logger = opts.logger;
-            // make sure we keep alive connections to the backend
-            this.agent = new https.Agent({
-                keepAlive: true,
-            });
-            this.transportScheme = 'https'; // todo: clarify, why protocol is separated from endpoint?
-
-            this._hubIamProviderUrl = `${this.transportScheme}://${opts.hubIamProviderUrl}`;
+            this._hubIamProviderUrl = opts.hubIamProviderUrl;
             this._oidcTokenRoute = opts.oidcTokenRoute || OIDC_TOKEN_ROUTE;
             this._oidcGrantType = opts.oidcGrantType || OIDC_GRANT_TYPE;
             this._oidcScope = opts.oidcScope; // e.g. 'email profile'
+
+            this.agent = this.#defineAgent();
         }
 
         JWTSingleton.instance = this;
@@ -76,6 +73,14 @@ class JWTSingleton {
             this._logger.push({ err }).log('Error Login');
             throw err;
         }
+    }
+
+    #defineAgent() {
+        const httpModule = this._hubIamProviderUrl.startsWith('https') ? https : http;
+        // make sure we keep alive connections to the backend
+        return new httpModule.Agent({
+            keepAlive: true,
+        });
     }
 }
 
