@@ -11,6 +11,8 @@
  *       James Bush - james.bush@modusbox.com                             *
  ************************************************************************* */
 
+const http = require('http');
+const https = require('https');
 const util = require('util');
 const { CONTENT_TYPES } = require('../constants');
 
@@ -66,6 +68,14 @@ const throwOrJson = async (res) => {
     return res.data;
 };
 
+const defineAgent = (url) =>  {
+    const httpModule = url.startsWith('https') ? https : http;
+    // make sure we keep alive connections to the backend
+    return new httpModule.Agent({
+        keepAlive: true,
+    });
+}
+
 const makeHeaders = (contentType) => {
     const headers = {
         'Content-Type': contentType,
@@ -87,7 +97,7 @@ module.exports = {
     HTTPResponseError,
     buildUrl,
     throwOrJson,
-
+    defineAgent,
     makeJsonHeaders,
     makeFormUrlEncodedHeaders,
 };

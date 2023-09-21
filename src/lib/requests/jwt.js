@@ -1,12 +1,10 @@
 /* eslint-disable no-constructor-return, import/no-extraneous-dependencies */
-const http = require('http');
-const https = require('https');
 const querystring = require('querystring');
 const { request } = require('@mojaloop/sdk-standard-components');
 
 const { ERROR_MESSAGES, OIDC_TOKEN_ROUTE, OIDC_GRANT_TYPE } = require('../constants');
 const { oidcPayloadDto } = require('../dto');
-const { buildUrl, makeFormUrlEncodedHeaders } = require('./common');
+const { buildUrl, defineAgent, makeFormUrlEncodedHeaders } = require('./common');
 
 class JWTSingleton {
     constructor(opts) {
@@ -22,7 +20,7 @@ class JWTSingleton {
             this._oidcGrantType = opts.oidcGrantType || OIDC_GRANT_TYPE;
             this._oidcScope = opts.oidcScope; // e.g. 'email profile'
 
-            this.agent = this.#defineAgent();
+            this.agent = defineAgent(this._hubIamProviderUrl);
         }
 
         JWTSingleton.instance = this;
@@ -73,14 +71,6 @@ class JWTSingleton {
             this._logger.push({ err }).log('Error Login');
             throw err;
         }
-    }
-
-    #defineAgent() {
-        const httpModule = this._hubIamProviderUrl.startsWith('https') ? https : http;
-        // make sure we keep alive connections to the backend
-        return new httpModule.Agent({
-            keepAlive: true,
-        });
     }
 }
 

@@ -11,11 +11,14 @@
  *       Murthy Kakarlamudi - murthy@modusbox.com                             *
  ************************************************************************* */
 
-const http = require('http');
 const retry = require('async-retry');
 const { request } = require('@mojaloop/sdk-standard-components');
-const { buildUrl, throwOrJson, makeJsonHeaders, HTTPResponseError } = require('./common');
+const { AUTH_HEADER } = require('../constants');
 const { JWTSingleton } = require('./jwt');
+const {
+    buildUrl, throwOrJson, makeJsonHeaders, HTTPResponseError, defineAgent,
+} = require('./common');
+
 
 /**
  * A class for making requests to DFSP backend API
@@ -25,15 +28,12 @@ class Requests {
         this.config = config;
         this.logger = config.logger;
 
-        // make sure we keep alive connections to the backend
-        this.agent = new http.Agent({
-            keepAlive: true,
-        });
-
-        this.transportScheme = 'http';
-
+        this.transportScheme = config.transportScheme ?? 'http';
         // Switch or peer DFSP endpoint
         this.hubEndpoint = `${this.transportScheme}://${config.hubEndpoint}`;
+        // todo: clarify, why scheme is separated from hubEndpoint url?
+
+        this.agent = defineAgent(this.hubEndpoint);
     }
 
     /**
@@ -48,7 +48,7 @@ class Requests {
         const headers = makeJsonHeaders();
 
         if (token) {
-            headers.Cookie = token;
+            headers[AUTH_HEADER] = `Bearer ${token}`;
         }
 
         return headers;
@@ -56,7 +56,7 @@ class Requests {
 
     async onRetry(error) {
         const JWT = new JWTSingleton();
-        await JWT.login();
+        await JWT.login(); // todo: think, if we need to do login on any error!
         console.log(`Retrying HTTP GET because ${error}`);
     }
 

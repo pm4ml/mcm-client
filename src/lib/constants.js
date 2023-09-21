@@ -1,3 +1,5 @@
+const AUTH_HEADER = 'Authorization';
+
 const OIDC_TOKEN_ROUTE = 'realms/dfsps/protocol/openid-connect/token';
 
 const OIDC_GRANT_TYPE = 'client_credentials';
@@ -14,6 +16,7 @@ const CONTENT_TYPES = Object.freeze({
 });
 
 module.exports = {
+    AUTH_HEADER,
     CONTENT_TYPES,
     ERROR_MESSAGES,
     OIDC_GRANT_TYPE,
