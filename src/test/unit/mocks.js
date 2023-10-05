@@ -14,7 +14,7 @@ const mockAuth = ({
 
 const mockJwtOptions = ({
     auth = mockAuth(),
-    hubIamProviderUrl = 'hubIamProviderUrl.com',
+    hubIamProviderUrl = 'https://hubIamProviderUrl.com',
 } = {}) => Object.freeze({
     auth,
     hubIamProviderUrl,
@@ -23,11 +23,13 @@ const mockJwtOptions = ({
 
 const mockModelOptions = ({
     dfspId = 'dfspId',
-    hubEndpoint = 'hubEndpoint.com',
+    hubEndpoint = 'http://hubEndpoint.com',
+    retries,
 } = {}) => Object.freeze({
     dfspId,
     hubEndpoint,
-    logger: new Logger.Logger({}),
+    retries,
+    logger: new Logger.Logger(),
 });
 
 const mockOidcData = ({

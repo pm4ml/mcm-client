@@ -13,7 +13,7 @@
 
 const retry = require('async-retry');
 const { request } = require('@mojaloop/sdk-standard-components');
-const { AUTH_HEADER } = require('../constants');
+const { AUTH_HEADER, DEFAULT_RETRIES_COUNT } = require('../constants');
 const { JWTSingleton } = require('./jwt');
 const {
     buildUrl, throwOrJson, makeJsonHeaders, HTTPResponseError, defineAgent,
@@ -27,11 +27,9 @@ class Requests {
     constructor(config) {
         this.config = config;
         this.logger = config.logger;
-
-        this.transportScheme = config.transportScheme ?? 'http';
+        this.retries = config.retries ?? DEFAULT_RETRIES_COUNT;
         // Switch or peer DFSP endpoint
-        this.hubEndpoint = `${this.transportScheme}://${config.hubEndpoint}`;
-        // todo: clarify, why scheme is separated from hubEndpoint url?
+        this.hubEndpoint = config.hubEndpoint;
 
         this.agent = defineAgent(this.hubEndpoint);
     }
@@ -55,100 +53,52 @@ class Requests {
     }
 
     async onRetry(error) {
-        const JWT = new JWTSingleton();
-        await JWT.login(); // todo: think, if we need to do login on any error!
-        console.log(`Retrying HTTP GET because ${error}`);
+        const { statusCode } = error?.getData?.().res || error || {};
+        const needLogin = [401, 403].includes(statusCode);
+        if (needLogin) {
+            this.logger.push({ error }).log(`Retrying login due to error statusCode: ${statusCode}`);
+            const JWT = new JWTSingleton();
+            await JWT.login();
+        }
     }
 
     async get(url) {
-        return await retry(async () => {
-            const headers = this._buildHeaders();
-            const reqOpts = {
-                method: 'GET',
-                uri: buildUrl(this.hubEndpoint, url),
-                headers,
-            };
-
-            this.logger.push({ reqOpts }).log('Executing HTTP GET');
-            // if anything throws, we retry
-            return request({ ...reqOpts, agent: this.agent })
-                .then(throwOrJson)
-                .catch((e) => {
-                    this.logger.push({ e }).log('Error attempting HTTP GET');
-                    throw e;
-                });
-        }, {
-            retries: 2,
-            onRetry: this.onRetry,
-        });
+        return this.#sendRequestWithRetry(url, 'GET');
     }
 
     async delete(url) {
-        return await retry(async () => {
-            const headers = this._buildHeaders();
-            const reqOpts = {
-                method: 'DELETE',
-                uri: buildUrl(this.hubEndpoint, url),
-                headers,
-            };
-
-            this.logger.push({ reqOpts }).log('Executing HTTP DELETE');
-            return request({ ...reqOpts, agent: this.agent })
-                .then(throwOrJson)
-                .catch((e) => {
-                    this.logger.push({ e }).log('Error attempting HTTP DELETE');
-                    throw e;
-                });
-        }, {
-            retries: 2,
-            onRetry: this.onRetry,
-        });
+        return this.#sendRequestWithRetry(url, 'DELETE');
     }
 
     async put(url, body) {
-        return await retry(async () => {
-            const headers = this._buildHeaders();
-            const reqOpts = {
-                method: 'PUT',
-                uri: buildUrl(this.hubEndpoint, url),
-                headers,
-                body: JSON.stringify(body),
-            };
-
-            this.logger.push({ reqOpts }).log('Executing HTTP PUT');
-            return request({ ...reqOpts, agent: this.agent })
-                .then(throwOrJson)
-                .catch((e) => {
-                    this.logger.push({ e }).log('Error attempting HTTP PUT');
-                    throw e;
-                });
-        }, {
-            retries: 2,
-            onRetry: this.onRetry,
-        });
+        return this.#sendRequestWithRetry(url, 'PUT', body);
     }
 
-    async post(url, bodyParam) {
+    async post(url, body) {
+        return this.#sendRequestWithRetry(url, 'POST', body);
+    }
+
+    async #sendRequestWithRetry(url, method, body = null) {
         return await retry(async () => {
             const headers = this._buildHeaders();
-            const body = JSON.stringify(bodyParam);
+            const uri = buildUrl(this.hubEndpoint, url);
             const reqOpts = {
-                method: 'POST',
-                uri: buildUrl(this.hubEndpoint, url),
+                method,
+                uri,
                 headers,
-                body,
+                ...(body ? { body: JSON.stringify(body) } : null),
             };
+            this.logger.push({ reqOpts }).log(`Executing HTTP ${method}`);
 
-            this.logger.push({ reqOpts }).log('Executing HTTP POST');
             return request({ ...reqOpts, agent: this.agent })
-                .then(throwOrJson)
-                .catch((e) => {
-                    this.logger.push({ e }).log('Error attempting POST.');
-                    throw e;
-                });
+              .then(throwOrJson)
+              .catch((e) => {
+                  this.logger.push({ e }).log(`Error attempting HTTP ${method}`);
+                  throw e;
+              });
         }, {
-            retries: 2,
-            onRetry: this.onRetry,
+            retries: this.retries,
+            onRetry: this.onRetry.bind(this),
         });
     }
 }

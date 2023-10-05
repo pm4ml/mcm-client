@@ -1,7 +1,7 @@
 const sdkSC = require('@mojaloop/sdk-standard-components');
 const { DFSPCertificateModel, AuthModel } = require('../../../lib/model');
 const { JWTSingleton } = require('../../../lib/requests/jwt');
-const { AUTH_HEADER, CONTENT_TYPES } = require('../../../lib/constants');
+const { AUTH_HEADER, CONTENT_TYPES, ERROR_MESSAGES } = require('../../../lib/constants');
 const mocks = require('../mocks');
 
 jest.mock('@mojaloop/sdk-standard-components', () => ({
@@ -36,5 +36,13 @@ describe('DFSPCertificateModel Tests -->', () => {
         } = requestArgs.headers;
         expect(authHeader).toBe(`Bearer ${token}`);
         expect(contentType).toBe(CONTENT_TYPES.json);
+    });
+
+    test('should throw error if hubEndpoint does not have protocol part', async () => {
+        const options = mocks.mockModelOptions({
+            hubEndpoint: 'hubEndpoint.com',
+        });
+        expect(() => new DFSPCertificateModel(options))
+            .toThrowError(ERROR_MESSAGES.noProtocolInUrl);
     });
 });
