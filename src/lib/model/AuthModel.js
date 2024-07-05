@@ -18,14 +18,17 @@ class AuthModel {
         this._storage = opts.storage;
         this._logger = opts.logger;
         this._auth = opts.auth;
-        this._hubEndpoint = opts.hubEndpoint;
+        this._hubIamProviderUrl = opts.hubIamProviderUrl;
+        this._oidcScope = opts.oidcScope;
+
     }
 
     async login() {
         const JWT = new JWTSingleton({
             auth: this._auth,
             logger: this._logger,
-            hubEndpoint: this._hubEndpoint,
+            hubIamProviderUrl: this._hubIamProviderUrl,
+            oidcScope: this._oidcScope,
         });
         await JWT.login();
     }

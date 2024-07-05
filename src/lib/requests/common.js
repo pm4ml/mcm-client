@@ -11,7 +11,10 @@
  *       James Bush - james.bush@modusbox.com                             *
  ************************************************************************* */
 
+const http = require('http');
+const https = require('https');
 const util = require('util');
+const { CONTENT_TYPES, ERROR_MESSAGES } = require('../constants');
 
 const respErrSym = Symbol('ResponseErrorDataSym');
 
@@ -50,14 +53,14 @@ const throwOrJson = async (res) => {
     // TODO: will a 503 or 500 with content-length zero generate an error?
     // or a 404 for that matter?!
 
-    if (res.headers['content-length'] === '0' || res.statusCode === 204) {
+    if (res.headers?.['content-length'] === '0' || res.statusCode === 204) {
         // success but no content, return null
         return null;
     }
     if (res.statusCode < 200 || res.statusCode >= 300) {
         // not a successful request
         throw new HTTPResponseError({
-            msg: `Request returned non-success status code ${res.statusCode}`,
+            msg: `${ERROR_MESSAGES.nonSuccessStatusCode} ${res.statusCode}`,
             res,
         });
     }
@@ -65,8 +68,40 @@ const throwOrJson = async (res) => {
     return res.data;
 };
 
+const defineAgent = (url) =>  {
+    if (!url?.includes('http')) {
+        throw new Error(ERROR_MESSAGES.noProtocolInUrl);
+    }
+
+    const httpModule = url.startsWith('https') ? https : http;
+    // make sure we keep alive connections to the backend
+    return new httpModule.Agent({
+        keepAlive: true,
+    });
+}
+
+const makeHeaders = (contentType) => {
+    const headers = {
+        'Content-Type': contentType,
+        Accept: CONTENT_TYPES.json,
+    };
+
+    // clarify, why do we need this header
+    if (process.env.HOST_HEADER_MCM_SERVER) {
+        headers.host = process.env.HOST_HEADER_MCM_SERVER;
+    }
+
+    return headers;
+}
+
+const makeJsonHeaders = () => makeHeaders(CONTENT_TYPES.json);
+const makeFormUrlEncodedHeaders = () => makeHeaders(CONTENT_TYPES.formUrlEncoded);
+
 module.exports = {
     HTTPResponseError,
     buildUrl,
     throwOrJson,
+    defineAgent,
+    makeJsonHeaders,
+    makeFormUrlEncodedHeaders,
 };

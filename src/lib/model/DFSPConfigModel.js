@@ -32,7 +32,7 @@ class DFSPConfigModel {
     }
 
     async findStatus() {
-        return this._hubRequest.get(`/dfsps/${this._dfspId}/status`);
+        return this._mcmServerRequest.get(`/dfsps/${this._dfspId}/status`);
     }
 
     /**
