@@ -38,6 +38,15 @@ describe('DFSPCertificateModel Tests -->', () => {
         expect(contentType).toBe(CONTENT_TYPES.json);
     });
 
+    test('should call external-dfsps endpiont on uploadExternalDfspJWS', async () => {
+        const model = new DFSPCertificateModel(mocks.mockModelOptions());
+        await model.uploadExternalDfspJWS(mocks.mockUploadExternalDfspJWSData());
+
+        expect(sdkSC.request).toHaveBeenCalledTimes(3);
+        const [requestArgs] = sdkSC.request.mock.calls[2];
+        expect(requestArgs.uri).toContain('/external-dfsps/jwscerts');
+    });
+
     test('should throw error if hubEndpoint does not have protocol part', async () => {
         const options = mocks.mockModelOptions({
             hubEndpoint: 'hubEndpoint.com',

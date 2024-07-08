@@ -43,6 +43,14 @@ const mockOidcData = ({
     scope: 'profile email',
 });
 
+const mockUploadExternalDfspJWSData = () => Object.freeze([
+    {
+        dfspId: 'test1',
+        createdAt: 1,
+        publicKey: 'publicKey',
+    }
+]);
+
 const mockOidcHttpResponse = ({
     statusCode = 200,
     data = mockOidcData(),
@@ -59,4 +67,5 @@ module.exports = {
     mockModelOptions,
     mockOidcData,
     mockOidcHttpResponse,
+    mockUploadExternalDfspJWSData,
 };

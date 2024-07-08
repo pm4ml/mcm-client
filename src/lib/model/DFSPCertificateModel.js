@@ -130,6 +130,16 @@ class DFSPCertificateModel {
     }
 
     /**
+     * Uploads External JWS Certificates, connection manager will filter out if there are any JWS keys passed for native DFSPs just incase.
+     *
+     * @param opts {Object}
+     */
+    async uploadExternalDfspJWS(opts) {
+        const url = `/external-dfsps/jwscerts`;
+        return this._mcmServerRequest.post(url, opts);
+    }
+
+    /**
      * Get DFSP JWS Certificate, Root and Intermediate certificates from MCM Server
      */
     async getDFSPJWSCertificates() {
