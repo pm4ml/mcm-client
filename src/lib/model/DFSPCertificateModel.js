@@ -19,6 +19,9 @@ class DFSPCertificateModel {
         this._mcmServerRequest = new Requests({
             logger: opts.logger,
             hubEndpoint: opts.hubEndpoint,
+            additionalHeaders: {
+                'X-DFSP-ID': this._dfspId,
+            },
         });
     }
 

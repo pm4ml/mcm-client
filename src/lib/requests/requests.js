@@ -28,6 +28,7 @@ class Requests {
         this.config = config;
         this.logger = config.logger;
         this.retries = config.retries ?? DEFAULT_RETRIES_COUNT;
+        this.additionalHeaders = config.additionalHeaders;
         // Switch or peer DFSP endpoint
         this.hubEndpoint = config.hubEndpoint;
 
@@ -47,6 +48,12 @@ class Requests {
 
         if (token) {
             headers[AUTH_HEADER] = `Bearer ${token}`;
+        }
+        // Add any additional headers
+        if (this.additionalHeaders) {
+            Object.entries(this.additionalHeaders).forEach(([key, value]) => {
+                headers[key] = value;
+            });
         }
 
         return headers;
