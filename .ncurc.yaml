@@ -1,0 +1,3 @@
+reject: [
+  "eslint", ## npm install fails if eslint is upgraded because eslint-config-airbnb-base uses old version of eslint
+]
