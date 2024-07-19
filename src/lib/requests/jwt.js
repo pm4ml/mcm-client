@@ -38,7 +38,21 @@ class JWTSingleton {
         const payload = oidcPayloadDto(this._auth, this._oidcGrantType, this._oidcScope);
         const postData = querystring.stringify(payload);
 
-        this.token = await this.post(route, postData, headers);
+        let lastError;
+        for (let retries = 0; retries < (this._auth.retry || 1); retries += 1) {
+            try {
+                // eslint-disable-next-line no-await-in-loop
+                this.token = await this.post(route, postData, headers);
+                return;
+            } catch (err) {
+                lastError = err;
+                if (this._auth.delay) {
+                    // eslint-disable-next-line no-await-in-loop, no-promise-executor-return
+                    await new Promise((resolve) => setTimeout(resolve, this._auth.delay * 1000));
+                }
+            }
+        }
+        throw lastError;
     }
 
     getToken() {

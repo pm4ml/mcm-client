@@ -1,12 +1,13 @@
+let mockResponse;
+const mockRequest = jest.fn(async () => mockResponse);
+
 const { JWTSingleton } = require('../../../lib/requests/jwt');
 const { ERROR_MESSAGES } = require('../../../lib/constants');
 const mocks = require('../mocks');
 
-let mockResponse;
-
 jest.mock('@mojaloop/sdk-standard-components', () => ({
     ...jest.requireActual('@mojaloop/sdk-standard-components'),
-    request: jest.fn(async () => mockResponse),
+    request: mockRequest,
 }));
 
 describe('JWTSingleton Tests -->', () => {
@@ -30,18 +31,22 @@ describe('JWTSingleton Tests -->', () => {
     });
 
     test('should throw error if no access token in response', async () => {
+        mockRequest.mockClear();
         mockResponse = mocks.mockOidcHttpResponse({
             data: {},
         });
         await expect(() => jwt.login())
             .rejects.toThrowError(ERROR_MESSAGES.loginErrorNoToken);
+        expect(mockRequest).toHaveBeenCalledTimes(2);
     });
 
     test('should throw error if response has wrong statusCode', async () => {
+        mockRequest.mockClear();
         mockResponse = mocks.mockOidcHttpResponse({
             statusCode: 204,
         });
         await expect(() => jwt.login())
             .rejects.toThrowError(ERROR_MESSAGES.loginErrorInvalidStatusCode);
+        expect(mockRequest).toHaveBeenCalledTimes(2);
     });
 });

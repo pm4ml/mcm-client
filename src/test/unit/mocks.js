@@ -10,6 +10,8 @@ const mockAuth = ({
         clientId,
         clientSecret,
     },
+    retry: 2,
+    delay: 1,
 });
 
 const mockJwtOptions = ({
