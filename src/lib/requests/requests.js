@@ -59,16 +59,6 @@ class Requests {
         return headers;
     }
 
-    async onRetry(error) {
-        const { statusCode } = error?.getData?.().res || error || {};
-        const needLogin = [401, 403].includes(statusCode);
-        if (needLogin) {
-            this.logger.push({ error }).log(`Retrying login due to error statusCode: ${statusCode}`);
-            const JWT = new JWTSingleton();
-            await JWT.login();
-        }
-    }
-
     async get(url) {
         return this.#sendRequestWithRetry(url, 'GET');
     }
@@ -86,7 +76,7 @@ class Requests {
     }
 
     async #sendRequestWithRetry(url, method, body = null) {
-        return await retry(async () => {
+        return await retry(async (bail) => {
             const headers = this._buildHeaders();
             const uri = buildUrl(this.hubEndpoint, url);
             const reqOpts = {
@@ -99,13 +89,20 @@ class Requests {
 
             return request({ ...reqOpts, agent: this.agent })
               .then(throwOrJson)
-              .catch((e) => {
-                  this.logger.push({ e }).log(`Error attempting HTTP ${method}`);
-                  throw e;
+              .catch((error) => {
+                  this.logger.push({ error }).log(`Error attempting HTTP ${method}`);
+
+                  const { statusCode } = error?.getData?.().res || error || {};
+                  if ([401, 403].includes(statusCode)) {
+                      this.logger.push({ error }).log(`Retrying login due to error statusCode: ${statusCode}`);
+                      const JWT = new JWTSingleton();
+                      return JWT.login().then(() => error).catch(bail);
+                  }
+
+                  return error;
               });
         }, {
             retries: this.retries,
-            onRetry: this.onRetry.bind(this),
         });
     }
 }
