@@ -96,10 +96,10 @@ class Requests {
                   if ([401, 403].includes(statusCode)) {
                       this.logger.push({ error }).log(`Retrying login due to error statusCode: ${statusCode}`);
                       const JWT = new JWTSingleton();
-                      return JWT.login().then(() => error).catch(bail);
+                      return JWT.login().then(() => { throw error }, bail);
                   }
 
-                  return error;
+                  throw error;
               });
         }, {
             retries: this.retries,
