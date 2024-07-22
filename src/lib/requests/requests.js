@@ -76,7 +76,7 @@ class Requests {
     }
 
     async #sendRequestWithRetry(url, method, body = null) {
-        return await retry(async (bail) => {
+        return await retry(async () => {
             const headers = this._buildHeaders();
             const uri = buildUrl(this.hubEndpoint, url);
             const reqOpts = {
@@ -87,20 +87,18 @@ class Requests {
             };
             this.logger.push({ reqOpts }).log(`Executing HTTP ${method}`);
 
-            return request({ ...reqOpts, agent: this.agent })
-              .then(throwOrJson)
-              .catch((error) => {
-                  this.logger.push({ error }).log(`Error attempting HTTP ${method}`);
-
-                  const { statusCode } = error?.getData?.().res || error || {};
-                  if ([401, 403].includes(statusCode)) {
-                      this.logger.push({ error }).log(`Retrying login due to error statusCode: ${statusCode}`);
-                      const JWT = new JWTSingleton();
-                      return JWT.login().then(() => { throw error }, bail);
-                  }
-
-                  throw error;
-              });
+            try {
+                return throwOrJson(await request({ ...reqOpts, agent: this.agent }));
+            } catch (error) {
+                const { statusCode } = error?.getData?.().res || error || {};
+                this.logger.push({ error }).log(`Error attempting HTTP ${method} statusCode: ${statusCode}`);
+                if ([401, 403].includes(statusCode)) {
+                    this.logger.log(`Retrying login due to error statusCode: ${statusCode}`);
+                    const JWT = new JWTSingleton();
+                    await JWT.login();
+                }
+                throw error;
+            }
         }, {
             retries: this.retries,
         });
