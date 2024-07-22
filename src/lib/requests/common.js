@@ -34,6 +34,10 @@ class HTTPResponseError extends Error {
     toString() {
         return util.inspect(this[respErrSym]);
     }
+
+    toJSON() {
+        return JSON.stringify(this[respErrSym]);
+    }
 }
 
 // Strip all beginning and end forward-slashes from each of the arguments, then join all the
