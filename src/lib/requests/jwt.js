@@ -67,9 +67,9 @@ class JWTSingleton {
             }
 
             return data.access_token;
-        } catch (err) {
-            this._logger.push({ err }).log('Error Login');
-            throw err;
+        } catch (error) {
+            this._logger.push({ error }).log('Error Login');
+            throw error;
         }
     }
 }
