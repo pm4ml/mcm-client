@@ -49,7 +49,7 @@ const buildUrl = (...args) => args
     .join('/')
         + ((args[args.length - 1].slice(-1) === '/') ? '/' : '');
 
-const throwOrJson = async (res) => {
+const throwOrJson = (res) => {
     // TODO: will a 503 or 500 with content-length zero generate an error?
     // or a 404 for that matter?!
 
