@@ -88,7 +88,7 @@ class Requests {
             this.logger.push({ reqOpts }).log(`Executing HTTP ${method}`);
 
             try {
-                return await throwOrJson(await request({ ...reqOpts, agent: this.agent }));
+                return throwOrJson(await request({ ...reqOpts, agent: this.agent }));
             } catch (error) {
                 const { statusCode } = error?.getData?.().res || error || {};
                 this.logger.push({ error }).log(`Error attempting HTTP ${method} statusCode: ${statusCode}`);
