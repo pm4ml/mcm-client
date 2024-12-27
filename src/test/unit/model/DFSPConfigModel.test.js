@@ -18,4 +18,16 @@ describe('DFSPConfigModel Tests -->', () => {
         const data = await model.findStatus();
         expect(data).toBeTruthy();
     });
+
+    test('should do get getDFSPList call without error', async () => {
+        const model = new DFSPConfigModel(mocks.mockModelOptions());
+        const data = await model.getDFSPList();
+        expect(data).toBeTruthy();
+    });
+
+    test('should do get getDFSPListByMonetaryZone call without error', async () => {
+        const model = new DFSPConfigModel(mocks.mockModelOptions());
+        const data = await model.getDFSPListByMonetaryZone();
+        expect(data).toBeTruthy();
+    });
 });
