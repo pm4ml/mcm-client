@@ -25,11 +25,32 @@ const mockModelOptions = ({
     dfspId = 'dfspId',
     hubEndpoint = 'http://hubEndpoint.com',
     retries,
+    inboundEnrollmentId = 1,
 } = {}) => Object.freeze({
     dfspId,
     hubEndpoint,
     retries,
     logger: new Logger.Logger(),
+    inboundEnrollmentId,
+});
+
+const mockEndpointModelOptions = ({
+    dfspId = 'dfspId',
+    hubEndpoint = 'http://hubEndpoint.com',
+    retries,
+    epId = 1,
+    type = 'type',
+    direction = 'test',
+    state = 'state',
+} = {}) => Object.freeze({
+    dfspId,
+    hubEndpoint,
+    retries,
+    logger: new Logger.Logger(),
+    epId,
+    type,
+    direction,
+    state,
 });
 
 const mockOidcData = ({
@@ -48,8 +69,13 @@ const mockUploadExternalDfspJWSData = () => Object.freeze([
         dfspId: 'test1',
         createdAt: 1,
         publicKey: 'publicKey',
-    }
+    },
 ]);
+
+const mockUploadCSRData = () => Object.freeze({
+    dfspId: 'test1',
+    csr: 'csr',
+});
 
 const mockOidcHttpResponse = ({
     statusCode = 200,
@@ -68,4 +94,6 @@ module.exports = {
     mockOidcData,
     mockOidcHttpResponse,
     mockUploadExternalDfspJWSData,
+    mockUploadCSRData,
+    mockEndpointModelOptions,
 };
