@@ -1,5 +1,5 @@
 const sdkSC = require('@mojaloop/sdk-standard-components');
-const { HubCertificateModel, AuthModel} = require('../../../lib/model');
+const { HubCertificateModel, AuthModel } = require('../../../lib/model');
 const { JWTSingleton } = require('../../../lib/requests/jwt');
 const mocks = require('../mocks');
 
