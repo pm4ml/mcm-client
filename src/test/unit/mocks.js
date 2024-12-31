@@ -87,10 +87,18 @@ const mockOidcHttpResponse = ({
     headers,
 });
 
-const mockHubCertificateModelOptions = ({
+const mockHubModelOptions = ({
     enId = 1,
+    epId = 1,
+    state = 'state',
+    direction = 'test',
+    type = 'type',
 } = {}) => Object.freeze({
     enId,
+    epId,
+    state,
+    direction,
+    type,
 });
 
 module.exports = {
@@ -102,5 +110,5 @@ module.exports = {
     mockUploadExternalDfspJWSData,
     mockUploadCSRData,
     mockEndpointModelOptions,
-    mockHubCertificateModelOptions,
+    mockHubModelOptions,
 };

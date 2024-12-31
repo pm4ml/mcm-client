@@ -34,12 +34,12 @@ describe('HubCertificateModel Tests -->', () => {
 
     test('should call getClientCerts endpoint ', async () => {
         const model = new HubCertificateModel(mocks.mockModelOptions());
-        const state = 'tempState';
-        await model.getClientCerts(state);
+        const opts = mocks.mockHubModelOptions();
+        await model.getClientCerts(opts.state);
 
         expect(sdkSC.request).toHaveBeenCalledTimes(1);
         const [requestArgs] = sdkSC.request.mock.calls[0];
-        expect(requestArgs.uri).toContain(`/enrollments/outbound?state=${state}`);
+        expect(requestArgs.uri).toContain(`/enrollments/outbound?state=${opts.state}`);
     });
 
     test('should call getServerCertificates endpoint ', async () => {
@@ -53,7 +53,7 @@ describe('HubCertificateModel Tests -->', () => {
 
     test('should call uploadServerCertificate endpoint ', async () => {
         const model = new HubCertificateModel(mocks.mockModelOptions());
-        const opts = mocks.mockHubCertificateModelOptions();
+        const opts = mocks.mockHubModelOptions();
         await model.uploadServerCertificate(opts);
 
         expect(sdkSC.request).toHaveBeenCalledTimes(1);
