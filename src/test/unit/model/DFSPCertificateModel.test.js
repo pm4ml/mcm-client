@@ -169,6 +169,6 @@ describe('DFSPCertificateModel Tests -->', () => {
 
         expect(sdkSC.request).toHaveBeenCalledTimes(1);
         const [requestArgs] = sdkSC.request.mock.calls[0];
-        expect(requestArgs.uri).toContain(`/dfsps/jwscerts`);
+        expect(requestArgs.uri).toContain('/dfsps/jwscerts');
     });
 });
