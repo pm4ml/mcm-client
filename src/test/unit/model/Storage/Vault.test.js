@@ -40,32 +40,32 @@ describe('Vault', () => {
         });
     });
 
-    // describe('connect', () => {
-    //     it('should unwrap and log in with approle', async () => {
-    //         const mockSecretId = 'mock-secret-id';
-    //         const mockClientToken = 'mock-client-token';
-    //
-    //         mockVault.unwrap.mockResolvedValueOnce({ data: { secret_id: mockSecretId } });
-    //
-    //         // Simulate a promise object that contains { auth: { client_token } }
-    //         mockVault.approleLogin.mockReturnValueOnce(
-    //             Promise.resolve({ auth: { client_token: mockClientToken } }),
-    //         );
-    //
-    //         await vaultInstance.connect();
-    //
-    //         expect(mockVault.unwrap).toHaveBeenCalled();
-    //         expect(mockVault.approleLogin).toHaveBeenCalledWith({
-    //             role_id: mockRoleId,
-    //             secret_id: mockSecretId,
-    //         });
-    //         expect(vault).toHaveBeenCalledWith({
-    //             apiVersion: 'v1',
-    //             endpoint: 'http://127.0.0.1:8200',
-    //             token: mockClientToken,
-    //         });
-    //     });
-    // });
+    describe('connect', () => {
+        it('should unwrap and log in with approle', async () => {
+            const mockSecretId = 'mock-secret-id';
+            const mockClientToken = 'mock-client-token';
+
+            mockVault.unwrap.mockResolvedValueOnce({ data: { secret_id: mockSecretId } });
+
+            // Simulate a promise object that contains { auth: { client_token } }
+            mockVault.approleLogin.mockReturnValueOnce(
+                Promise.resolve({ auth: { client_token: mockClientToken } }),
+            );
+
+            await vaultInstance.connect();
+
+            expect(mockVault.unwrap).toHaveBeenCalled();
+            expect(mockVault.approleLogin).toHaveBeenCalledWith({
+                role_id: mockRoleId,
+                secret_id: mockSecretId,
+            });
+            expect(vault).toHaveBeenCalledWith({
+                apiVersion: 'v1',
+                endpoint: 'http://127.0.0.1:8200',
+                token: mockClientToken,
+            });
+        });
+    });
 
     describe('getSecret', () => {
         it('should read a secret from the Vault', async () => {
