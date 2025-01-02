@@ -26,8 +26,9 @@ describe('DFSPConfigModel Tests -->', () => {
     });
 
     test('should do get getDFSPListByMonetaryZone call without error', async () => {
+        const mockOpts = { monetaryZoneId: 'mockMonetaryZoneId123' };
         const model = new DFSPConfigModel(mocks.mockModelOptions());
-        const data = await model.getDFSPListByMonetaryZone();
+        const data = await model.getDFSPListByMonetaryZone(mockOpts);
         expect(data).toBeTruthy();
     });
 });
