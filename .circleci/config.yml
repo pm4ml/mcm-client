@@ -207,7 +207,7 @@ workflows:
   build_and_test:
     jobs:
       - setup:
-          context: pm4ml-ci
+          context: mcm-client-ci
           filters:
             branches:
               ignore:
@@ -215,7 +215,7 @@ workflows:
                 - /bugfix*/
                 - /hotfix*/
       - test-unit:
-          context: pm4ml-ci
+          context: mcm-client-ci
           requires:
             - setup
           filters:
@@ -225,7 +225,7 @@ workflows:
                 - /bugfix*/
                 - /hotfix*/
       - lint:
-          context: pm4ml-ci
+          context: mcm-client-ci
           requires:
             - setup
           filters:
@@ -235,7 +235,7 @@ workflows:
                 - /bugfix*/
                 - /hotfix*/
       - audit-licenses:
-          context: pm4ml-ci
+          context: mcm-client-ci
           requires:
             - setup
           filters:
@@ -245,7 +245,7 @@ workflows:
                 - /bugfix*/
                 - /hotfix*/
       - build:
-          context: pm4ml-ci
+          context: mcm-client-ci
           filters:
             branches:
               ignore:
@@ -255,7 +255,7 @@ workflows:
   deploy:
     jobs:
       - publish:
-          context: pm4ml-ci
+          context: mcm-client-ci
           filters:
             tags:
               only: /v[0-9]+(\.[0-9]+)*(\-snapshot(\.[0-9]+))?(\-hotfix(\.[0-9]+))?/

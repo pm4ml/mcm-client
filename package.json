@@ -25,7 +25,12 @@
     "test:int": "jest --ci --reporters=default --reporters=jest-junit --env=node src/test/integration --forceExit",
     "prepublishOnly": "tsc",
     "dep:check": "npx ncu -e 2",
-    "dep:update": "npx ncu -u"
+    "dep:update": "npx ncu -u",
+    "audit:check": "npx audit-ci --config ./audit-ci.jsonc",
+    "test:xunit": "npm install --immutable && npm run build && npx run-many --parallel --all --target=test:xunit -- --detectOpenHandles",
+    "test:coverage": "npm run test:coverage",
+    "test:functional": "./test/scripts/test-functional.sh",
+    "audit:fix": "npm audit fix"
   },
   "dependencies": {
     "@mojaloop/sdk-standard-components": "18.4.0",
