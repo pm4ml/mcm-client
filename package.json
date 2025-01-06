@@ -29,6 +29,7 @@
     "audit:check": "npx audit-ci --config ./audit-ci.jsonc",
     "test:xunit": "npm install --immutable && npm run build && npx run-many --parallel --all --target=test:xunit -- --detectOpenHandles",
     "test:coverage": "npm run test:coverage",
+    "test:integration": "npm run test:int",
     "test:functional": "./test/scripts/test-functional.sh",
     "audit:fix": "npm audit fix"
   },
