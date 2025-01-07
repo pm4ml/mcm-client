@@ -8,7 +8,7 @@ const config = {
 
   reporters: [
     'default',
-    ['jest-junit', {outputDirectory: 'reports', outputName: 'report.xml'}],
+    ['jest-junit', {outputDirectory: 'reports', outputName: './test/results/report.xml'}],
   ],
  
   // Automatically clear mock calls, instances, contexts and results before every test
