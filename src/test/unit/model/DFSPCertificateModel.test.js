@@ -42,7 +42,7 @@ describe('DFSPCertificateModel Tests -->', () => {
         const model = new DFSPCertificateModel(mocks.mockModelOptions());
         await model.uploadExternalDfspJWS(mocks.mockUploadExternalDfspJWSData());
 
-        expect(sdkSC.request).toHaveBeenCalledTimes(3);
+        expect(sdkSC.request).toHaveBeenCalledTimes(1);
         const [requestArgs] = sdkSC.request.mock.calls[2];
         expect(requestArgs.uri).toContain('/external-dfsps/jwscerts');
     });
