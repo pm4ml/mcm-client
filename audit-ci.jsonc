@@ -21,5 +21,9 @@
         // central-services-shared
         "GHSA-3xgq-45jj-v275",
         "GHSA-952p-6rrq-rcjv",
+        "GHSA-7fh5-64p2-3v2j",
+        "GHSA-cgfm-xwp7-2cvr",
+        "GHSA-ghr5-ch3p-vcr6",
+        "GHSA-rm97-x556-q36h",
     ]
 }
