@@ -22,6 +22,7 @@
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "test": "jest --ci --reporters=default --reporters=jest-junit --env=node src/test/unit",
+    "test:unit": "npm run test",
     "test:int": "jest --ci --reporters=default --reporters=jest-junit --env=node src/test/integration --forceExit",
     "prepublishOnly": "tsc",
     "dep:check": "npx ncu -e 2",
