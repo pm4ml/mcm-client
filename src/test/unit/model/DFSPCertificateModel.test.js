@@ -28,8 +28,8 @@ describe('DFSPCertificateModel Tests -->', () => {
         const model = new DFSPCertificateModel(mocks.mockModelOptions());
         await model.getDFSPCA();
 
-        expect(sdkSC.request).toHaveBeenCalledTimes(2);
-        const [requestArgs] = sdkSC.request.mock.calls[1];
+        expect(sdkSC.request).toHaveBeenCalledTimes(1);
+        const [requestArgs] = sdkSC.request.mock.calls[0];
         const {
             [AUTH_HEADER]: authHeader,
             'Content-Type': contentType,
@@ -43,7 +43,7 @@ describe('DFSPCertificateModel Tests -->', () => {
         await model.uploadExternalDfspJWS(mocks.mockUploadExternalDfspJWSData());
 
         expect(sdkSC.request).toHaveBeenCalledTimes(1);
-        const [requestArgs] = sdkSC.request.mock.calls[2];
+        const [requestArgs] = sdkSC.request.mock.calls[0];
         expect(requestArgs.uri).toContain('/external-dfsps/jwscerts');
     });
 
