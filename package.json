@@ -29,7 +29,6 @@
     "dep:update": "npx ncu -u",
     "audit:check": "npx audit-ci --config ./audit-ci.jsonc",
     "test:xunit": "npm run test:unit | tap-xunit > ./test/results/xunit.xml",
-    "test:coverage": "npm run test:coverage",
     "test:coverage-check":  "npm run test:coverage",
     "test:integration": "npm run test:int",
     "test:functional": "./test/scripts/test-functional.sh",
