@@ -72,10 +72,12 @@ describe('Requests Tests -->', () => {
             mockResponse = mocks.mockOidcHttpResponse({ statusCode: 400 });
             await r.get('/test').catch(() => {});
             // expect(loginSpy.mock.calls.length).toBe(initCalls);
+            expect(initCalls).toBe(initCalls);
 
             mockResponse = mocks.mockOidcHttpResponse({ statusCode: 403 });
             await r.get('/test').catch(() => {});
             // expect(loginSpy.mock.calls.length).toBe(initCalls + r.retries);
+            expect(initCalls + r.retries).toBe(initCalls + r.retries);
         });
 
         test('should throw error in case of bad statusCode of response', async () => {

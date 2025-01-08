@@ -1,6 +1,8 @@
 const ws = require('ws');
 const { Client } = require('../../../lib/control-server'); // Assuming the class is exported from a file named Client.js
-const { Server, MESSAGE, VERB, ERROR } = require('../../../lib/control-server');
+const {
+    Server, MESSAGE, VERB,
+} = require('../../../lib/control-server');
 
 jest.mock('ws');
 
