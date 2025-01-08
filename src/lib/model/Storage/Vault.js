@@ -37,7 +37,7 @@ class Vault extends Storage {
         // login with approleLogin
         const loginResult = await this._vault.approleLogin({ role_id: this._roleId, secret_id: secretId });
         const { client_token } = loginResult.auth;
-        console.log(`Using client token to login ${client_token}`);
+        // console.log(`Using client token to login ${client_token}`);
         const client_options = {
             apiVersion: 'v1', // default
             endpoint: 'http://127.0.0.1:8200',
