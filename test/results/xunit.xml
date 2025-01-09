@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="81" failures="0" errors="0" time="16.256">
+  <testsuite name="Client" errors="0" failures="0" skipped="0" timestamp="2025-01-09T11:34:09" time="0.862" tests="14">
+    <testcase classname="Client should construct a Client with the correct properties" name="Client should construct a Client with the correct properties" time="0.01">
+    </testcase>
+    <testcase classname="Client should expose the Build getter" name="Client should expose the Build getter" time="0.001">
+    </testcase>
+    <testcase classname="Client should create a new Client instance using the Create static method" name="Client should create a new Client instance using the Create static method" time="0.002">
+    </testcase>
+    <testcase classname="Client should throw an error if the websocket fails to open during Create" name="Client should throw an error if the websocket fails to open during Create" time="0.025">
+    </testcase>
+    <testcase classname="Client should log and send a message through the websocket" name="Client should log and send a message through the websocket" time="0.001">
+    </testcase>
+    <testcase classname="Client should handle string messages in send" name="Client should handle string messages in send" time="0.001">
+    </testcase>
+    <testcase classname="Client should correctly receive and deserialise a single message" name="Client should correctly receive and deserialise a single message" time="0.002">
+    </testcase>
+    <testcase classname="Server should initialize with correct properties" name="Server should initialize with correct properties" time="0.007">
+    </testcase>
+    <testcase classname="Server should handle errors and shut down the process" name="Server should handle errors and shut down the process" time="0.001">
+    </testcase>
+    <testcase classname="Server should handle client connections" name="Server should handle client connections" time="0.004">
+    </testcase>
+    <testcase classname="Server should handle client messages" name="Server should handle client messages" time="0.001">
+    </testcase>
+    <testcase classname="Server should notify all clients of the current configuration" name="Server should notify all clients of the current configuration" time="0.001">
+    </testcase>
+    <testcase classname="Server should stop the server and log shutdown" name="Server should stop the server and log shutdown" time="0.001">
+    </testcase>
+    <testcase classname="Server should reconfigure logger and appConfig" name="Server should reconfigure logger and appConfig" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="DFSPCertificateModel Tests --&gt;" errors="0" failures="0" skipped="0" timestamp="2025-01-09T11:34:09" time="2.737" tests="15">
+    <testcase classname="DFSPCertificateModel Tests --&gt; should use access token as Authorization-header to do further calls to hub" name="DFSPCertificateModel Tests --&gt; should use access token as Authorization-header to do further calls to hub" time="0.005">
+    </testcase>
+    <testcase classname="DFSPCertificateModel Tests --&gt; should call external-dfsps endpoint on uploadExternalDfspJWS" name="DFSPCertificateModel Tests --&gt; should call external-dfsps endpoint on uploadExternalDfspJWS" time="0.001">
+    </testcase>
+    <testcase classname="DFSPCertificateModel Tests --&gt; should throw error if hubEndpoint does not have protocol part" name="DFSPCertificateModel Tests --&gt; should throw error if hubEndpoint does not have protocol part" time="0.007">
+    </testcase>
+    <testcase classname="DFSPCertificateModel Tests --&gt; should call uploadCSR endpoint on uploadExternalDfspJWS" name="DFSPCertificateModel Tests --&gt; should call uploadCSR endpoint on uploadExternalDfspJWS" time="0.001">
+    </testcase>
+    <testcase classname="DFSPCertificateModel Tests --&gt; should call signInboundEnrollment endpoint " name="DFSPCertificateModel Tests --&gt; should call signInboundEnrollment endpoint " time="0.001">
+    </testcase>
+    <testcase classname="DFSPCertificateModel Tests --&gt; should call getClientCertificate endpoint " name="DFSPCertificateModel Tests --&gt; should call getClientCertificate endpoint " time="0">
+    </testcase>
+    <testcase classname="DFSPCertificateModel Tests --&gt; should call getCertificates endpoint " name="DFSPCertificateModel Tests --&gt; should call getCertificates endpoint " time="0.001">
+    </testcase>
+    <testcase classname="DFSPCertificateModel Tests --&gt; should call uploadDFSPCA endpoint to upload DFSP CA Root and Intermediate certificates to MCM Server" name="DFSPCertificateModel Tests --&gt; should call uploadDFSPCA endpoint to upload DFSP CA Root and Intermediate certificates to MCM Server" time="0">
+    </testcase>
+    <testcase classname="DFSPCertificateModel Tests --&gt; should call getDFSPServerCertificates endpoint to retrieve DFSP Server Certificate, Root and Intermediate certificates from MCM Server" name="DFSPCertificateModel Tests --&gt; should call getDFSPServerCertificates endpoint to retrieve DFSP Server Certificate, Root and Intermediate certificates from MCM Server" time="0.001">
+    </testcase>
+    <testcase classname="DFSPCertificateModel Tests --&gt; should call uploadServerCertificates endpoint to upload DFSP Server Certificate, Root and Intermediate certificates to MCM Server" name="DFSPCertificateModel Tests --&gt; should call uploadServerCertificates endpoint to upload DFSP Server Certificate, Root and Intermediate certificates to MCM Server" time="0">
+    </testcase>
+    <testcase classname="DFSPCertificateModel Tests --&gt; should call uploadJWS endpoint to upload DFSP JWS Certificate, Root and Intermediate certificates to MCM Server" name="DFSPCertificateModel Tests --&gt; should call uploadJWS endpoint to upload DFSP JWS Certificate, Root and Intermediate certificates to MCM Server" time="0.001">
+    </testcase>
+    <testcase classname="DFSPCertificateModel Tests --&gt; should call updateJWS endpoint to upload DFSP JWS Certificate, Root and Intermediate certificates to MCM Server" name="DFSPCertificateModel Tests --&gt; should call updateJWS endpoint to upload DFSP JWS Certificate, Root and Intermediate certificates to MCM Server" time="0">
+    </testcase>
+    <testcase classname="DFSPCertificateModel Tests --&gt; should call deleteJWS endpoint to delete DFSP JWS Certificate, Root and Intermediate certificates to MCM Server" name="DFSPCertificateModel Tests --&gt; should call deleteJWS endpoint to delete DFSP JWS Certificate, Root and Intermediate certificates to MCM Server" time="0.001">
+    </testcase>
+    <testcase classname="DFSPCertificateModel Tests --&gt; should call getDFSPJWSCertificates endpoint to get DFSP JWS Certificate, Root and Intermediate certificates from MCM Server" name="DFSPCertificateModel Tests --&gt; should call getDFSPJWSCertificates endpoint to get DFSP JWS Certificate, Root and Intermediate certificates from MCM Server" time="0">
+    </testcase>
+    <testcase classname="DFSPCertificateModel Tests --&gt; should call getAllJWSCertificates endpoint to get **all** JWS Certificate, Root and Intermediate certificates from MCM Server" name="DFSPCertificateModel Tests --&gt; should call getAllJWSCertificates endpoint to get **all** JWS Certificate, Root and Intermediate certificates from MCM Server" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="DFSPEndpointModel Tests --&gt;" errors="0" failures="0" skipped="0" timestamp="2025-01-09T11:34:12" time="1.738" tests="12">
+    <testcase classname="DFSPEndpointModel Tests --&gt; should do findById call without error [bug IPROD-209]" name="DFSPEndpointModel Tests --&gt; should do findById call without error [bug IPROD-209]" time="0.003">
+    </testcase>
+    <testcase classname="DFSPEndpointModel Tests --&gt; should do get findAll call without error" name="DFSPEndpointModel Tests --&gt; should do get findAll call without error" time="0.001">
+    </testcase>
+    <testcase classname="DFSPEndpointModel Tests --&gt; should do get findAll with opts.type call without error" name="DFSPEndpointModel Tests --&gt; should do get findAll with opts.type call without error" time="0">
+    </testcase>
+    <testcase classname="DFSPEndpointModel Tests --&gt; should do get findAll with opts.direction call without error" name="DFSPEndpointModel Tests --&gt; should do get findAll with opts.direction call without error" time="0.001">
+    </testcase>
+    <testcase classname="DFSPEndpointModel Tests --&gt; should do get findAll with opts.state call without error" name="DFSPEndpointModel Tests --&gt; should do get findAll with opts.state call without error" time="0.001">
+    </testcase>
+    <testcase classname="DFSPEndpointModel Tests --&gt; should do get create call without error" name="DFSPEndpointModel Tests --&gt; should do get create call without error" time="0">
+    </testcase>
+    <testcase classname="DFSPEndpointModel Tests --&gt; should do create call with direction EGRESS without error" name="DFSPEndpointModel Tests --&gt; should do create call with direction EGRESS without error" time="0.001">
+    </testcase>
+    <testcase classname="DFSPEndpointModel Tests --&gt; should do create call with direction INGRESS without error" name="DFSPEndpointModel Tests --&gt; should do create call with direction INGRESS without error" time="0">
+    </testcase>
+    <testcase classname="DFSPEndpointModel Tests --&gt; should do get delete call without error" name="DFSPEndpointModel Tests --&gt; should do get delete call without error" time="0.001">
+    </testcase>
+    <testcase classname="DFSPEndpointModel Tests --&gt; should do get update call without error" name="DFSPEndpointModel Tests --&gt; should do get update call without error" time="0.001">
+    </testcase>
+    <testcase classname="DFSPEndpointModel Tests --&gt; should do update call with type IP without error" name="DFSPEndpointModel Tests --&gt; should do update call with type IP without error" time="0">
+    </testcase>
+    <testcase classname="DFSPEndpointModel Tests --&gt; should do update call with type URL without error" name="DFSPEndpointModel Tests --&gt; should do update call with type URL without error" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="Vault" errors="0" failures="0" skipped="0" timestamp="2025-01-09T11:34:14" time="0.346" tests="6">
+    <testcase classname="Vault constructor should initialize with the provided options" name="Vault constructor should initialize with the provided options" time="0.003">
+    </testcase>
+    <testcase classname="Vault connect should unwrap and log in with approle" name="Vault connect should unwrap and log in with approle" time="0.001">
+    </testcase>
+    <testcase classname="Vault getSecret should read a secret from the Vault" name="Vault getSecret should read a secret from the Vault" time="0">
+    </testcase>
+    <testcase classname="Vault setSecret should write a secret to the Vault" name="Vault setSecret should write a secret to the Vault" time="0">
+    </testcase>
+    <testcase classname="Vault deleteSecret should delete a secret from the Vault" name="Vault deleteSecret should delete a secret from the Vault" time="0.002">
+    </testcase>
+    <testcase classname="Vault disconnect should handle disconnect logic (currently unimplemented)" name="Vault disconnect should handle disconnect logic (currently unimplemented)" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="ConnectorModel" errors="0" failures="0" skipped="0" timestamp="2025-01-09T11:34:14" time="0.273" tests="2">
+    <testcase classname="ConnectorModel reconfigureInboundSdk should log and send the correct configuration" name="ConnectorModel reconfigureInboundSdk should log and send the correct configuration" time="0.003">
+    </testcase>
+    <testcase classname="ConnectorModel reconfigureOutboundSdk should log and send the correct outbound configuration" name="ConnectorModel reconfigureOutboundSdk should log and send the correct outbound configuration" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="File Storage" errors="0" failures="0" skipped="0" timestamp="2025-01-09T11:34:15" time="0.284" tests="8">
+    <testcase classname="File Storage _getKeyPath should generate the correct file path for a given key" name="File Storage _getKeyPath should generate the correct file path for a given key" time="0.011">
+    </testcase>
+    <testcase classname="File Storage getSecret should read the file content for a given key" name="File Storage getSecret should read the file content for a given key" time="0.001">
+    </testcase>
+    <testcase classname="File Storage getSecret should handle errors when the file does not exist" name="File Storage getSecret should handle errors when the file does not exist" time="0.008">
+    </testcase>
+    <testcase classname="File Storage getSecretAsString should read the file content as a string for a given key" name="File Storage getSecretAsString should read the file content as a string for a given key" time="0.001">
+    </testcase>
+    <testcase classname="File Storage setSecret should write the value to the file for a given key" name="File Storage setSecret should write the value to the file for a given key" time="0">
+    </testcase>
+    <testcase classname="File Storage setSecret should handle errors during file writing" name="File Storage setSecret should handle errors during file writing" time="0.001">
+    </testcase>
+    <testcase classname="File Storage deleteSecret should delete the file for a given key" name="File Storage deleteSecret should delete the file for a given key" time="0">
+    </testcase>
+    <testcase classname="File Storage deleteSecret should handle errors during file deletion" name="File Storage deleteSecret should handle errors during file deletion" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="HubCertificateModel Tests --&gt;" errors="0" failures="0" skipped="0" timestamp="2025-01-09T11:34:15" time="1.727" tests="4">
+    <testcase classname="HubCertificateModel Tests --&gt; should call getHubCA endpoint " name="HubCertificateModel Tests --&gt; should call getHubCA endpoint " time="0.003">
+    </testcase>
+    <testcase classname="HubCertificateModel Tests --&gt; should call getClientCerts endpoint " name="HubCertificateModel Tests --&gt; should call getClientCerts endpoint " time="0.001">
+    </testcase>
+    <testcase classname="HubCertificateModel Tests --&gt; should call getServerCertificates endpoint " name="HubCertificateModel Tests --&gt; should call getServerCertificates endpoint " time="0.001">
+    </testcase>
+    <testcase classname="HubCertificateModel Tests --&gt; should call uploadServerCertificate endpoint " name="HubCertificateModel Tests --&gt; should call uploadServerCertificate endpoint " time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="HubEndpointModel Tests --&gt;" errors="0" failures="0" skipped="0" timestamp="2025-01-09T11:34:17" time="1.842" tests="4">
+    <testcase classname="HubEndpointModel Tests --&gt; should call findById endpoint " name="HubEndpointModel Tests --&gt; should call findById endpoint " time="0.003">
+    </testcase>
+    <testcase classname="HubEndpointModel Tests --&gt; should call findAll endpoint " name="HubEndpointModel Tests --&gt; should call findAll endpoint " time="0.001">
+    </testcase>
+    <testcase classname="HubEndpointModel Tests --&gt; should do findAll call with type filter without error" name="HubEndpointModel Tests --&gt; should do findAll call with type filter without error" time="0.001">
+    </testcase>
+    <testcase classname="HubEndpointModel Tests --&gt; should do findAll call with direction filter without error" name="HubEndpointModel Tests --&gt; should do findAll call with direction filter without error" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="MonetaryZoneModel Tests --&gt;" errors="0" failures="0" skipped="0" timestamp="2025-01-09T11:34:19" time="2.113" tests="2">
+    <testcase classname="MonetaryZoneModel Tests --&gt; should call getMonetaryZones endpoint " name="MonetaryZoneModel Tests --&gt; should call getMonetaryZones endpoint " time="0.003">
+    </testcase>
+    <testcase classname="MonetaryZoneModel Tests --&gt; should call getDfspsByMonetaryZone endpoint " name="MonetaryZoneModel Tests --&gt; should call getDfspsByMonetaryZone endpoint " time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="JWTSingleton Tests --&gt;" errors="0" failures="0" skipped="0" timestamp="2025-01-09T11:34:21" time="2.535" tests="4">
+    <testcase classname="JWTSingleton Tests --&gt; should return the same instance" name="JWTSingleton Tests --&gt; should return the same instance" time="0.002">
+    </testcase>
+    <testcase classname="JWTSingleton Tests --&gt; should get access token" name="JWTSingleton Tests --&gt; should get access token" time="0.002">
+    </testcase>
+    <testcase classname="JWTSingleton Tests --&gt; should throw error if no access token in response" name="JWTSingleton Tests --&gt; should throw error if no access token in response" time="0.011">
+    </testcase>
+    <testcase classname="JWTSingleton Tests --&gt; should throw error if response has wrong statusCode" name="JWTSingleton Tests --&gt; should throw error if response has wrong statusCode" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="Requests Tests --&gt;" errors="0" failures="0" skipped="0" timestamp="2025-01-09T11:34:10" time="14.369" tests="4">
+    <testcase classname="Requests Tests --&gt; should pass params to underlying sdkSC.request in proper format" name="Requests Tests --&gt; should pass params to underlying sdkSC.request in proper format" time="0.014">
+    </testcase>
+    <testcase classname="Requests Tests --&gt; onRetry Tests --&gt; should do retries in case of errors" name="Requests Tests --&gt; onRetry Tests --&gt; should do retries in case of errors" time="1.368">
+    </testcase>
+    <testcase classname="Requests Tests --&gt; onRetry Tests --&gt; should do login call only in case of 401 or 403 errors" name="Requests Tests --&gt; onRetry Tests --&gt; should do login call only in case of 401 or 403 errors" time="9.413">
+    </testcase>
+    <testcase classname="Requests Tests --&gt; onRetry Tests --&gt; should throw error in case of bad statusCode of response" name="Requests Tests --&gt; onRetry Tests --&gt; should throw error in case of bad statusCode of response" time="1.742">
+    </testcase>
+  </testsuite>
+  <testsuite name="DTO Tests --&gt;" errors="0" failures="0" skipped="0" timestamp="2025-01-09T11:34:25" time="0.363" tests="2">
+    <testcase classname="DTO Tests --&gt; oidcPayloadDto Tests --&gt; should pass validation" name="DTO Tests --&gt; oidcPayloadDto Tests --&gt; should pass validation" time="0.002">
+    </testcase>
+    <testcase classname="DTO Tests --&gt; oidcPayloadDto Tests --&gt; should throw on wrong format" name="DTO Tests --&gt; oidcPayloadDto Tests --&gt; should throw on wrong format" time="0.005">
+    </testcase>
+  </testsuite>
+  <testsuite name="DFSPConfigModel Tests --&gt;" errors="0" failures="0" skipped="0" timestamp="2025-01-09T11:34:24" time="1.722" tests="3">
+    <testcase classname="DFSPConfigModel Tests --&gt; should do findStatus call without error [bug IPROD-209]" name="DFSPConfigModel Tests --&gt; should do findStatus call without error [bug IPROD-209]" time="0.003">
+    </testcase>
+    <testcase classname="DFSPConfigModel Tests --&gt; should do get getDFSPList call without error" name="DFSPConfigModel Tests --&gt; should do get getDFSPList call without error" time="0.001">
+    </testcase>
+    <testcase classname="DFSPConfigModel Tests --&gt; should do get getDFSPListByMonetaryZone call without error" name="DFSPConfigModel Tests --&gt; should do get getDFSPListByMonetaryZone call without error" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="mcm-client" errors="0" failures="0" skipped="0" timestamp="2025-01-09T11:34:25" time="0.244" tests="1">
+    <testcase classname="mcm-client should pass" name="mcm-client should pass" time="0.002">
+    </testcase>
+  </testsuite>
+</testsuites>
