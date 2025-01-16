@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="6" failures="1" errors="0" time="0.689">
+  <testsuite name="Client" errors="0" failures="1" skipped="0" timestamp="2025-01-03T06:36:54" time="0.615" tests="6">
+    <testcase classname="Client should construct a Client with the correct properties" name="Client should construct a Client with the correct properties" time="0.009">
+      <failure>Error: expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+Expected: &quot;ws://example.com:12&quot;
+Received: &quot;ws://example.com:1234&quot;
+
+Number of calls: 1
+    at Object.toHaveBeenCalledWith (/home/denier/nguni/mcm-client/src/test/unit/control-server/control-server.test.js:26:16)
+    at Promise.then.completed (/home/denier/nguni/mcm-client/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/home/denier/nguni/mcm-client/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusTest (/home/denier/nguni/mcm-client/node_modules/jest-circus/build/run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at _runTest (/home/denier/nguni/mcm-client/node_modules/jest-circus/build/run.js:252:3)
+    at _runTestsForDescribeBlock (/home/denier/nguni/mcm-client/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/home/denier/nguni/mcm-client/node_modules/jest-circus/build/run.js:121:9)
+    at run (/home/denier/nguni/mcm-client/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/home/denier/nguni/mcm-client/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/home/denier/nguni/mcm-client/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/home/denier/nguni/mcm-client/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/home/denier/nguni/mcm-client/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Client should expose the Build getter" name="Client should expose the Build getter" time="0.004">
+    </testcase>
+    <testcase classname="Client should create a new Client instance using the Create static method" name="Client should create a new Client instance using the Create static method" time="0.005">
+    </testcase>
+    <testcase classname="Client should throw an error if the websocket fails to open during Create" name="Client should throw an error if the websocket fails to open during Create" time="0.011">
+    </testcase>
+    <testcase classname="Client should log and send a message through the websocket" name="Client should log and send a message through the websocket" time="0.004">
+    </testcase>
+    <testcase classname="Client should handle string messages in send" name="Client should handle string messages in send" time="0.004">
+    </testcase>
+  </testsuite>
+</testsuites>

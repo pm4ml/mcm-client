@@ -54,10 +54,14 @@ class HubEndpointModel {
             filters.push((ep) => ep.state === opts.state);
         }
 
-        return response.filter((ep) => {
-            const filterResult = filters.map((filter) => filter(ep));
-            return !filterResult.includes(false);
-        });
+        if(response!== null && response !== undefined && response.length > 0) {
+            return response.filter((ep) => {
+                const filterResult = filters.map((filter) => filter(ep));
+                return !filterResult.includes(false);
+            });
+        } else {
+            return response;
+        }
     }
 }
 
