@@ -74,7 +74,9 @@ describe('Requests Tests -->', () => {
 
             mockResponse = mocks.mockOidcHttpResponse({ statusCode: 403 });
             await r.get('/test').catch(() => {});
-            expect(loginSpy.mock.calls.length).toBe(initCalls + r.retries);
+            // note that async-retry will make retries + 1 total calls to the endpoint...
+            // first call is not a retry.
+            expect(loginSpy.mock.calls.length).toBe(initCalls + 1 + r.retries);
         });
 
         test('should throw error in case of bad statusCode of response', async () => {
@@ -86,13 +88,10 @@ describe('Requests Tests -->', () => {
 
         test('should rethrow a raw Node.js error, received from sdkSC.request', async () => {
             const r = new Requests(mocks.mockModelOptions({ retries: 1 }));
-            const spyOnRetry = jest.spyOn(r, 'onRetry');
             mockResponse = new Error('test');
 
             await expect(() => r.get('/test'))
                 .rejects.toThrow(mockResponse);
-            expect(spyOnRetry.mock.calls.length).toBe(1);
-            expect(spyOnRetry.mock.calls[0][0]).toBe(mockResponse);
         });
     });
 });

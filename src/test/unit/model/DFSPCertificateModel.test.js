@@ -1,18 +1,22 @@
-const sdkSC = require('@mojaloop/sdk-standard-components');
 const { DFSPCertificateModel, AuthModel } = require('../../../lib/model');
 const { JWTSingleton } = require('../../../lib/requests/jwt');
 const { AUTH_HEADER, CONTENT_TYPES, ERROR_MESSAGES } = require('../../../lib/constants');
 const mocks = require('../mocks');
+const { ProgressMonitor } = require('../../../lib/stateMachine/states');
 
 jest.mock('@mojaloop/sdk-standard-components', () => ({
     ...jest.requireActual('@mojaloop/sdk-standard-components'),
-    request: jest.fn(async () => mocks.mockOidcHttpResponse()),
+    request: jest.fn(async () => mocks.mockErrorHttpResponse()),
 }));
+
+const sdkSC = require('@mojaloop/sdk-standard-components');
 
 describe('DFSPCertificateModel Tests -->', () => {
     let token;
 
     beforeAll(async () => {
+        sdkSC.request.mockImplementation(async () => mocks.mockOidcHttpResponse());
+
         const options = mocks.mockJwtOptions();
         const jwt = new JWTSingleton(options);
         expect(jwt.getToken()).toBeUndefined();
@@ -25,6 +29,8 @@ describe('DFSPCertificateModel Tests -->', () => {
     });
 
     test('should use access token as Authorization-header to do further calls to hub', async () => {
+        //sdkSC.request.mockImplementation(jest.fn(async () => mocks.mockOidcHttpResponse()));
+
         const model = new DFSPCertificateModel(mocks.mockModelOptions());
         await model.getDFSPCA();
 
@@ -39,6 +45,8 @@ describe('DFSPCertificateModel Tests -->', () => {
     });
 
     test('should call external-dfsps endpiont on uploadExternalDfspJWS', async () => {
+        sdkSC.request.mockImplementation(async () => mocks.mockUploadExternalDfspJWSHttpResponse());
+
         const model = new DFSPCertificateModel(mocks.mockModelOptions());
         await model.uploadExternalDfspJWS(mocks.mockUploadExternalDfspJWSData());
 
