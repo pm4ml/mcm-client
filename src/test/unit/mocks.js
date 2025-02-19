@@ -72,6 +72,7 @@ const mockUploadExternalDfspJWSHttpResponse = ({
 });
 
 const mockErrorData = ({
+    // eslint-disable-next-line no-unused-vars
     access_token = 'fake.access.token',
 } = {}) => Object.freeze({
     error: 'mock error response',
