@@ -25,6 +25,9 @@ const {
 
 const { HTTPResponseError } = require('./lib/requests');
 
+const { ConnectionStateMachine } = require('./lib/stateMachine')
+const { Vault } = require('./lib/vault')
+
 module.exports = {
     DFSPEndpointModel,
     HubEndpointModel,
@@ -36,4 +39,6 @@ module.exports = {
     MonetaryZoneModel,
     AuthModel,
     ConnectorModel,
+    ConnectionStateMachine,
+    Vault,
 };

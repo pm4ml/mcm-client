@@ -48,12 +48,39 @@ const mockUploadExternalDfspJWSData = () => Object.freeze([
         dfspId: 'test1',
         createdAt: 1,
         publicKey: 'publicKey',
-    }
+    },
 ]);
 
 const mockOidcHttpResponse = ({
     statusCode = 200,
     data = mockOidcData(),
+    headers = {},
+} = {}) => Object.freeze({
+    statusCode,
+    data,
+    headers,
+});
+
+const mockUploadExternalDfspJWSHttpResponse = ({
+    statusCode = 200,
+    data = mockUploadExternalDfspJWSData(),
+    headers = {},
+} = {}) => Object.freeze({
+    statusCode,
+    data,
+    headers,
+});
+
+const mockErrorData = ({
+    // eslint-disable-next-line no-unused-vars
+    access_token = 'fake.access.token',
+} = {}) => Object.freeze({
+    error: 'mock error response',
+});
+
+const mockErrorHttpResponse = ({
+    statusCode = 400,
+    data = mockErrorData(),
     headers = {},
 } = {}) => Object.freeze({
     statusCode,
@@ -68,4 +95,7 @@ module.exports = {
     mockOidcData,
     mockOidcHttpResponse,
     mockUploadExternalDfspJWSData,
+    mockUploadExternalDfspJWSHttpResponse,
+    mockErrorData,
+    mockErrorHttpResponse,
 };

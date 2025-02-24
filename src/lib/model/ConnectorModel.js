@@ -11,7 +11,7 @@
  *       Jose Sanchez - jose.sanchez@modusbox.com                   *
  ************************************************************************* */
 
-const ControlServer = require('../control-server');
+const ControlServer = require('../ControlServer');
 
 class ConnectorModel {
     constructor(opts) {
