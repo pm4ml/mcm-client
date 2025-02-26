@@ -28,6 +28,8 @@ const { HTTPResponseError } = require('./lib/requests');
 const { ConnectionStateMachine } = require('./lib/stateMachine')
 const { Vault } = require('./lib/vault')
 
+import * as ControlServer from './lib/ControlServer';
+
 module.exports = {
     DFSPEndpointModel,
     HubEndpointModel,
@@ -41,4 +43,5 @@ module.exports = {
     ConnectorModel,
     ConnectionStateMachine,
     Vault,
+    ControlServer,
 };
