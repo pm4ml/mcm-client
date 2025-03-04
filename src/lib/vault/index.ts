@@ -74,7 +74,7 @@ export interface VaultOpts {
 
 const MAX_TIMEOUT = Math.pow(2, 31) / 2 - 1; // https://developer.mozilla.org/en-US/docs/Web/API/setTimeout#maximum_delay_value
 
-class Vault {
+export default class Vault {
   private cfg: VaultOpts;
   private reconnectTimer?: NodeJS.Timeout;
   private client?: NodeVault.client;
@@ -344,4 +344,3 @@ class Vault {
   }
 }
 
-export default Vault;
