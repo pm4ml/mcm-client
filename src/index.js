@@ -25,8 +25,8 @@ const {
 
 const { HTTPResponseError } = require('./lib/requests');
 
-const { ConnectionStateMachine } = require('./lib/stateMachine')
-const { Vault } = require('./lib/vault')
+const { ConnectionStateMachine } = require('./lib/stateMachine');
+const Vault = require('./lib/vault').default;
 
 import * as ControlServer from './lib/ControlServer';
 
