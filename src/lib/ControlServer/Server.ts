@@ -44,6 +44,7 @@ export interface ServerOpts {
 class Server extends ws.Server {
   private _logger: Logger.Logger;
   private _clientData: Map<any, any>;
+  private _heartbeatInterval: NodeJS.Timeout | null = null;
   private readonly onRequestConfig: (client: unknown) => void;
   private readonly onRequestPeerJWS: (client: unknown) => void;
   private readonly onUploadPeerJWS: (client: unknown) => void;
@@ -90,7 +91,7 @@ class Server extends ws.Server {
   }
 
   private _startHeartbeat() {
-    setInterval(() => {
+    this._heartbeatInterval = setInterval(() => {
       this.clients.forEach((client) => {
         const clientData = this._clientData.get(client);
         if (clientData && !clientData.isAlive) {
@@ -106,8 +107,16 @@ class Server extends ws.Server {
     }, 30000);
   }
 
+  private _stopHeartbeat() {
+    if (this._heartbeatInterval) {
+      clearInterval(this._heartbeatInterval);
+      this._heartbeatInterval = null;
+    }
+  }
+
   // Close the server then wait for all the client sockets to close
   async stop() {
+    this._stopHeartbeat();
     const closing = new Promise((resolve) => this.close(resolve));
     for (const client of this.clients) {
       client.terminate();
