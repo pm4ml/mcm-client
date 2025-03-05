@@ -40,11 +40,6 @@ export interface ServerOpts {
   onRequestPeerJWS: (client: unknown) => void;
   onUploadPeerJWS: (client: unknown) => void;
 }
-interface ClientData {
-  ip: string;
-  logger: Logger.Logger;
-  isAlive: boolean;
-}
 
 class Server extends ws.Server {
   private _logger: Logger.Logger;
