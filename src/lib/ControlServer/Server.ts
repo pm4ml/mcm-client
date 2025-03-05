@@ -40,6 +40,11 @@ export interface ServerOpts {
   onRequestPeerJWS: (client: unknown) => void;
   onUploadPeerJWS: (client: unknown) => void;
 }
+interface ClientData {
+  ip: string;
+  logger: Logger.Logger;
+  isAlive: boolean;
+}
 
 class Server extends ws.Server {
   private _logger: Logger.Logger;
@@ -69,7 +74,14 @@ class Server extends ws.Server {
         remoteAddress: req.socket.remoteAddress,
       });
       logger.log('Websocket connection received');
-      this._clientData.set(socket, { ip: req.connection.remoteAddress, logger });
+      this._clientData.set(socket, { ip: req.connection.remoteAddress, logger, isAlive: true });
+
+      socket.on('pong', () => {
+        const clientData = this._clientData.get(socket);
+        if (clientData) {
+          clientData.isAlive = true;
+        }
+      });
 
       socket.on('close', (code, reason) => {
         logger.push({ code, reason }).log('Websocket connection closed');
@@ -79,6 +91,24 @@ class Server extends ws.Server {
       socket.on('message', this._handle(socket, logger));
     });
     this._logger.push(this.address()).log('running on');
+    this._startHeartbeat();
+  }
+
+  private _startHeartbeat() {
+    setInterval(() => {
+      this.clients.forEach((client) => {
+        const clientData = this._clientData.get(client);
+        if (clientData && !clientData.isAlive) {
+          client.terminate();
+          this._clientData.delete(client);
+          return;
+        }
+        if (clientData) {
+          clientData.isAlive = false;
+        }
+        client.ping();
+      });
+    }, 30000);
   }
 
   // Close the server then wait for all the client sockets to close
