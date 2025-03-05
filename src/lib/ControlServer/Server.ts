@@ -44,6 +44,7 @@ export interface ServerOpts {
 class Server extends ws.Server {
   private _logger: Logger.Logger;
   private _clientData: Map<any, any>;
+  private _heartbeatInterval: NodeJS.Timeout | null = null;
   private readonly onRequestConfig: (client: unknown) => void;
   private readonly onRequestPeerJWS: (client: unknown) => void;
   private readonly onUploadPeerJWS: (client: unknown) => void;
@@ -69,7 +70,14 @@ class Server extends ws.Server {
         remoteAddress: req.socket.remoteAddress,
       });
       logger.log('Websocket connection received');
-      this._clientData.set(socket, { ip: req.connection.remoteAddress, logger });
+      this._clientData.set(socket, { ip: req.connection.remoteAddress, logger, isAlive: true });
+
+      socket.on('pong', () => {
+        const clientData = this._clientData.get(socket);
+        if (clientData) {
+          clientData.isAlive = true;
+        }
+      });
 
       socket.on('close', (code, reason) => {
         logger.push({ code, reason }).log('Websocket connection closed');
@@ -79,10 +87,36 @@ class Server extends ws.Server {
       socket.on('message', this._handle(socket, logger));
     });
     this._logger.push(this.address()).log('running on');
+    this._startHeartbeat();
+  }
+
+  private _startHeartbeat() {
+    this._heartbeatInterval = setInterval(() => {
+      this.clients.forEach((client) => {
+        const clientData = this._clientData.get(client);
+        if (clientData && !clientData.isAlive) {
+          client.terminate();
+          this._clientData.delete(client);
+          return;
+        }
+        if (clientData) {
+          clientData.isAlive = false;
+        }
+        client.ping();
+      });
+    }, 30000);
+  }
+
+  private _stopHeartbeat() {
+    if (this._heartbeatInterval) {
+      clearInterval(this._heartbeatInterval);
+      this._heartbeatInterval = null;
+    }
   }
 
   // Close the server then wait for all the client sockets to close
   async stop() {
+    this._stopHeartbeat();
     const closing = new Promise((resolve) => this.close(resolve));
     for (const client of this.clients) {
       client.terminate();
