@@ -72,17 +72,49 @@ export interface VaultOpts {
   commonName: string;
 }
 
+export interface VaultInitOpts {
+  secret_shares: number,
+  secret_threshold: number,
+  pgp_keys?: string[],
+}
+
+export interface VaultUnsealOpts {
+  key: string,
+  reset?: boolean,
+  migrate?: boolean,
+}
+
+export interface VaultCreateAppRoleOpts {
+  role_name: string,
+  token_type: string,
+  token_ttl: string,
+  token_max_ttl: string,
+  token_policies?: string[],
+  token_period?: number,
+  bind_secret_id?: boolean,
+}
+
 const MAX_TIMEOUT = Math.pow(2, 31) / 2 - 1; // https://developer.mozilla.org/en-US/docs/Web/API/setTimeout#maximum_delay_value
 
 export default class Vault {
   private cfg: VaultOpts;
   private reconnectTimer?: NodeJS.Timeout;
-  private client?: NodeVault.client;
+  private client: NodeVault.client;
   private logger: SDK.Logger.Logger;
 
   constructor(private opts: VaultOpts) {
     this.cfg = opts;
     this.logger = opts.logger;
+
+    const { endpoint } = this.cfg;
+
+    this.client = NodeVault({
+      endpoint,
+    });
+  }
+
+  setAuth(newAuth: VaultAuthK8s & VaultAuthAppRole) {
+    this.cfg.auth = newAuth;
   }
 
   async connect() {
@@ -108,10 +140,7 @@ export default class Vault {
       throw new Error('Unsupported auth method');
     }
 
-    this.client = NodeVault({
-      endpoint,
-      token: creds.auth.client_token,
-    });
+    this.client.token = creds.auth.client_token;
 
     const tokenRefreshMs = Math.min((creds.auth.lease_duration - 10) * 1000, MAX_TIMEOUT);
     this.reconnectTimer = setTimeout(this.connect.bind(this), tokenRefreshMs);
@@ -340,6 +369,51 @@ export default class Vault {
       publicKey: forge.pki.publicKeyToPem(keypair.publicKey, 72),
       privateKey: forge.pki.privateKeyToPem(keypair.privateKey, 72),
       createdAt: Math.floor(Date.now() / 1000),
+    };
+  }
+
+  readSealStatus() {
+    return this.client.status();
+  }
+
+  initialize(opts: VaultInitOpts) {
+    return this.client.init(opts);
+  }
+
+  unseal(opts: VaultUnsealOpts) {
+    return this.client.unseal(opts);
+  }
+
+  async enableAppRoleAuth(token: string) {
+    // we need an elevated token to do this, so only use it temporarily.
+    const oldToken = this.client.token;
+    this.client.token = token;
+
+    const res = await this.client.write('sys/auth/approle', {
+      type: 'approle',
+    });
+
+    this.client.token = oldToken;
+    return res;
+  }
+
+  async createAppRole(token: string, opts: VaultCreateAppRoleOpts) {
+    // we need an elevated token to do this, so only use it temporarily.
+    const oldToken = this.client.token;
+    this.client.token = token;
+
+    // create the approle
+    const createRes = await this.client.write(`auth/approle/role/${opts.role_name}`, opts);
+
+    // read details of the approle
+    const roleIdRes = await this.client.read(`auth/approle/role/${opts.role_name}/role-id`);
+    const secretIdRes = JSON.parse(await this.client.write(`auth/approle/role/${opts.role_name}/secret-id`, null));
+
+    this.client.token = oldToken;
+
+    return {
+      role_id: roleIdRes.data.role_id,
+      secret_id: secretIdRes.data.secret_id,
     };
   }
 }
