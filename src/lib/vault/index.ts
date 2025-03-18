@@ -94,6 +94,15 @@ export interface VaultCreateAppRoleOpts {
   bind_secret_id?: boolean,
 }
 
+export interface VaultPkiRoleOpts {
+  allowed_domains: string,
+  allow_any_name: boolean,
+  allow_bare_domains: boolean,
+  allow_subdomains: boolean,
+  max_ttl: string,
+  key_bits: number,
+}
+
 const MAX_TIMEOUT = Math.pow(2, 31) / 2 - 1; // https://developer.mozilla.org/en-US/docs/Web/API/setTimeout#maximum_delay_value
 
 export default class Vault {
@@ -152,12 +161,20 @@ export default class Vault {
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
   }
 
-  mountAll() {
+  mountAll(token: string) {
     assert(this.client);
-    return Promise.all([
-      this.client.mount({ type: 'pki', prefix: `${this.cfg.mounts.pki}` }),
-      this.client.mount({ type: 'kv', prefix: `${this.cfg.mounts.kv}` }),
+
+    // we need an elevated token to do this, so only use it temporarily.
+    const oldToken = this.client.token;
+    this.client.token = token;
+
+    const res = Promise.all([
+      this.client.mount({ type: 'pki', mount_point: `${this.cfg.mounts.pki}` }),
+      this.client.mount({ type: 'kv', mount_point: `${this.cfg.mounts.kv}` }),
     ]);
+
+    this.client.token = oldToken;
+    return res;
   }
 
   async createPkiRoles() {
@@ -384,6 +401,33 @@ export default class Vault {
     return this.client.unseal(opts);
   }
 
+  async getPolicy(token: string, policyName: string) {
+    // we need an elevated token to do this, so only use it temporarily.
+    const oldToken = this.client.token;
+    this.client.token = token;
+
+    const policy = await this.client.getPolicy({
+      name: policyName,
+    });
+
+    this.client.token = oldToken;
+    return policy;
+  }
+
+  async updatePolicy(token: string, policyName: string, policy: string) {
+    // we need an elevated token to do this, so only use it temporarily.
+    const oldToken = this.client.token;
+    this.client.token = token;
+
+    const res = await this.client.addPolicy({
+      name: policyName,
+      rules: policy,
+    });
+
+    this.client.token = oldToken;
+    return res;
+  }
+
   async enableAppRoleAuth(token: string) {
     // we need an elevated token to do this, so only use it temporarily.
     const oldToken = this.client.token;
@@ -415,6 +459,17 @@ export default class Vault {
       role_id: roleIdRes.data.role_id,
       secret_id: secretIdRes.data.secret_id,
     };
+  }
+
+  async createPkiRole(token: string, roleName: string, opts: VaultPkiRoleOpts) {
+    // we need an elevated token to do this, so only use it temporarily.
+    const oldToken = this.client.token;
+    this.client.token = token;
+
+    const res = await this.client.write(`pki/roles/${roleName}`, opts);
+
+    this.client.token = oldToken;
+    return res;
   }
 }
 

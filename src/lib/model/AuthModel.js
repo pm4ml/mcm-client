@@ -20,6 +20,7 @@ class AuthModel {
         this._auth = opts.auth;
         this._hubIamProviderUrl = opts.hubIamProviderUrl;
         this._oidcScope = opts.oidcScope;
+        this._oidcTokenRoute = opts.oidcTokenRoute;
 
     }
 
@@ -29,6 +30,7 @@ class AuthModel {
             logger: this._logger,
             hubIamProviderUrl: this._hubIamProviderUrl,
             oidcScope: this._oidcScope,
+            oidcTokenRoute: this._oidcTokenRoute,
         });
         await JWT.login();
     }
