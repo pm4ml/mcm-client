@@ -78,7 +78,13 @@ export namespace DfspServerCert {
           onDone: {
             actions: [
               assign({
-                dfspServerCert: (ctx, { data }) => data,
+                dfspServerCert: (ctx, { data }) => {
+                  if(Array.isArray(data.intermediateChain)) {
+                    // MCM API expects intermediate chain to be a single string value
+                    data.intermediateChain = data.intermediateChain.join('\n');
+                  }
+                  return data
+                },
               }),
               send((ctx) => ({
                 type: 'UPDATE_CONNECTOR_CONFIG',
