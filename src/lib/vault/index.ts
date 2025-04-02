@@ -342,5 +342,19 @@ export default class Vault {
       createdAt: Math.floor(Date.now() / 1000),
     };
   }
+
+  async healthCheck() {
+    assert(this.client);
+    try {
+      const response = await this.client.request({
+        path: '/sys/health',
+        method: 'GET',
+      });
+      return response;
+    } catch (e: any) {
+      this.logger.push(e).log('Vault health check failed');
+      return { status: 'DOWN' };
+    }
+  }
 }
 

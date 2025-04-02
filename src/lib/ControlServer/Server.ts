@@ -218,6 +218,42 @@ class Server extends ws.Server {
       }
     });
   }
+
+  /**
+   * Outputs details about all connected clients.
+   */
+  getClientDetails() {
+    const clientDetails = Array.from(this._clientData.entries()).map(([client, data]) => ({
+      ip: data.ip,
+      isAlive: data.isAlive,
+      readyState: client.readyState,
+    }));
+    this._logger.push({ clientDetails }).log('Connected client details');
+    return clientDetails;
+  }
+
+  /**
+   * Health check function to verify the server is running and clients are responsive.
+   */
+  healthCheck() {
+    const clientDetails = this.getClientDetails();
+    const unhealthyClients = clientDetails.filter((client) => !client.isAlive);
+
+    const status = {
+      server: {
+        running: true,
+        port: this.options.port,
+      },
+      clients: {
+        total: clientDetails.length,
+        healthy: clientDetails.length - unhealthyClients.length,
+        unhealthy: unhealthyClients.length,
+      },
+    };
+
+    this._logger.push({ status }).log('Health check status');
+    return status;
+  }
 }
 
 export { Server, build, MESSAGE, VERB, ERROR };
