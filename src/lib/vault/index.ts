@@ -68,7 +68,7 @@ export interface VaultOpts {
   signExpiryHours: string;
   keyLength: number;
   keyAlgorithm: string;
-  logger: SDK.Logger.Logger;
+  logger: SDK.Logger.SdkLogger;
   commonName: string;
 }
 
@@ -78,7 +78,7 @@ export default class Vault {
   private cfg: VaultOpts;
   private reconnectTimer?: NodeJS.Timeout;
   private client?: NodeVault.client;
-  private logger: SDK.Logger.Logger;
+  private logger: SDK.Logger.SdkLogger;
 
   constructor(private opts: VaultOpts) {
     this.cfg = opts;

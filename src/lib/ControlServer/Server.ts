@@ -34,7 +34,7 @@ const ControlServerEventEmitter = getInternalEventEmitter();
  *************************************************************************/
 
 export interface ServerOpts {
-  logger: Logger.Logger;
+  logger: Logger.SdkLogger;
   port: number;
   onRequestConfig: (client: unknown) => void;
   onRequestPeerJWS: (client: unknown) => void;
@@ -42,7 +42,7 @@ export interface ServerOpts {
 }
 
 class Server extends ws.Server {
-  private _logger: Logger.Logger;
+  private _logger: Logger.SdkLogger;
   private _clientData: Map<any, any>;
   private _heartbeatInterval: NodeJS.Timeout | null = null;
   private readonly onRequestConfig: (client: unknown) => void;
@@ -59,7 +59,7 @@ class Server extends ws.Server {
     this.onUploadPeerJWS = opts.onUploadPeerJWS;
 
     this.on('error', (err) => {
-      this._logger.push({ err }).log('Unhandled websocket error occurred. Shutting down.');
+      this._logger.error('Unhandled websocket error occurred. Shutting down.', err);
       process.exit(1);
     });
 
@@ -68,7 +68,7 @@ class Server extends ws.Server {
         url: req.url,
         ip: getWsIp(req),
         remoteAddress: req.socket.remoteAddress,
-      });
+      } as any);
       logger.log('Websocket connection received');
       this._clientData.set(socket, { ip: req.connection.remoteAddress, logger, isAlive: true });
 
@@ -80,13 +80,13 @@ class Server extends ws.Server {
       });
 
       socket.on('close', (code, reason) => {
-        logger.push({ code, reason }).log('Websocket connection closed');
+        logger.warn('Websocket connection closed', { code, reason });
         this._clientData.delete(socket);
       });
 
       socket.on('message', this._handle(socket, logger));
     });
-    this._logger.push(this.address()).log('running on');
+    this._logger.verbose(`running on ${this.address()}...`);
     this._startHeartbeat();
   }
 
@@ -125,7 +125,7 @@ class Server extends ws.Server {
     this._logger.log('Control server shutdown complete');
   }
 
-  _handle(client, logger: Logger.Logger) {
+  _handle(client, logger: Logger.SdkLogger) {
     return (data: any) => {
       // TODO: json-schema validation of received message- should be pretty straight-forward
       // and will allow better documentation of the API
@@ -251,7 +251,7 @@ class Server extends ws.Server {
       },
     };
 
-    this._logger.push({ status }).log('Health check status');
+    this._logger.debug('Health check status:', { status });
     return status;
   }
 }

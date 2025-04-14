@@ -10,7 +10,7 @@
 
 import { assign, createMachine } from 'xstate';
 import SDKStandardComponents from '@mojaloop/sdk-standard-components';
-import Logger = SDKStandardComponents.Logger.Logger;
+import Logger = SDKStandardComponents.Logger.SdkLogger;
 // import { StateMachine } from 'xstate/lib/types';
 
 type AsyncFunc = (ctx?: any) => Promise<any>;
