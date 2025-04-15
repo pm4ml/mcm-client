@@ -59,7 +59,7 @@ class JWTSingleton {
 
             if (statusCode !== 200) {
                 const errMessage = ERROR_MESSAGES.loginErrorInvalidStatusCode;
-                this._logger.push({ statusCode, data }).log(errMessage);
+                this._logger.push({ statusCode, data }).warn(errMessage);
                 throw new Error(errMessage);
             }
             if (!data?.access_token) {
@@ -68,7 +68,7 @@ class JWTSingleton {
 
             return data.access_token;
         } catch (error) {
-            this._logger.push({ error }).log('Error Login');
+            this._logger.push({ error }).error('Error Login');
             throw error;
         }
     }

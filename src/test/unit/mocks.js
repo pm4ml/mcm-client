@@ -18,7 +18,7 @@ const mockJwtOptions = ({
 } = {}) => Object.freeze({
     auth,
     hubIamProviderUrl,
-    logger: new Logger.Logger({}),
+    logger: new Logger.SdkLogger({}),
 });
 
 const mockModelOptions = ({
@@ -29,7 +29,7 @@ const mockModelOptions = ({
     dfspId,
     hubEndpoint,
     retries,
-    logger: new Logger.Logger(),
+    logger: new Logger.SdkLogger(),
 });
 
 const mockOidcData = ({

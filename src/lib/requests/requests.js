@@ -91,9 +91,9 @@ class Requests {
                 return throwOrJson(await request({ ...reqOpts, agent: this.agent }));
             } catch (error) {
                 const { statusCode } = error?.getData?.().res || error || {};
-                this.logger.push({ error }).log(`Error attempting HTTP ${method} statusCode: ${statusCode}`);
+                this.logger.push({ error }).error(`Error attempting HTTP ${method} statusCode: ${statusCode}`);
                 if ([401, 403].includes(statusCode)) {
-                    this.logger.log(`Retrying login due to error statusCode: ${statusCode}`);
+                    this.logger.info(`Retrying login due to error statusCode: ${statusCode}`);
                     const JWT = new JWTSingleton();
                     await JWT.login();
                 }
