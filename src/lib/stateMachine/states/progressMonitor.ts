@@ -216,6 +216,6 @@ export namespace ProgressMonitor {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   export const createGuards = <TContext extends Context>() => ({
-    completedStates: (ctx) => Object.values(ctx.progressMonitor).every((entry) => entry.status),
+    completedStates: (ctx) => Object.values(ctx.progressMonitor).every((entry) => entry),
   });
 }
