@@ -85,7 +85,7 @@ class Requests {
                 headers,
                 ...(body ? { body: JSON.stringify(body) } : null),
             };
-            this.logger.push({ reqOpts }).log(`Executing HTTP ${method}`);
+            this.logger.push({ reqOpts }).debug(`Executing HTTP ${method}`);
 
             try {
                 return throwOrJson(await request({ ...reqOpts, agent: this.agent }));

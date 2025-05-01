@@ -87,7 +87,7 @@ export default class Vault {
 
   async connect() {
     const { auth, endpoint } = this.cfg;
-    this.logger.push({ endpoint }).log('Connecting to Vault');
+    this.logger.info('Connecting to Vault...', { endpoint });
 
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
 
@@ -105,7 +105,9 @@ export default class Vault {
         jwt: auth.k8s.token,
       });
     } else {
-      throw new Error('Unsupported auth method');
+      const errMessage = 'Unsupported auth method';
+      this.logger.warn(errMessage);
+      throw new Error(errMessage);
     }
 
     this.client = NodeVault({
@@ -116,11 +118,12 @@ export default class Vault {
     const tokenRefreshMs = Math.min((creds.auth.lease_duration - 10) * 1000, MAX_TIMEOUT);
     this.reconnectTimer = setTimeout(this.connect.bind(this), tokenRefreshMs);
 
-    this.logger.log(`Connected to Vault  [reconnect after: ${tokenRefreshMs} ms]`);
+    this.logger.info(`Connected to Vault  [reconnect after: ${tokenRefreshMs} ms]`);
   }
 
   disconnect() {
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+    this.logger.info('disconnected from Vault');
   }
 
   mountAll() {
@@ -155,6 +158,7 @@ export default class Vault {
       const { data } = await this.client.read(path);
       return data;
     } catch (e: any) {
+      this.logger.warn(`error in _getSecret: `, e);
       if (e?.response?.statusCode === 404) {
         return;
       }
@@ -181,21 +185,23 @@ export default class Vault {
    * @returns {Promise<void>}
    */
   async deleteCA() {
-    assert(this.client);
-    await this.client.request({
-      path: `/${this.cfg.mounts.pki}/root`,
-      method: 'DELETE',
-    });
+    try {
+      assert(this.client);
+      await this.client.request({
+        path: `/${this.cfg.mounts.pki}/root`,
+        method: 'DELETE',
+      });
+    } catch (err) {
+      this.logger.warn(`error in deleteCA: `, err);
+    }
   }
 
   /**
    * Create root CA
    */
   async createCA(subject: Subject) {
-    // eslint-disable-next-line no-empty
-    try {
-      await this.deleteCA();
-    } catch (e) {}
+    await this.deleteCA();
+
     assert(this.client);
     const { data } = await this.client.request({
       path: `/${this.cfg.mounts.pki}/root/generate/exported`,
@@ -246,7 +252,7 @@ export default class Vault {
       method: 'POST',
       json: reqJson,
     };
-    this.logger.push({ options }).log(`sending createDFSPServerCert request`);
+    this.logger.push({ options }).verbose(`sending createDFSPServerCert request`);
 
     const { data } = await this.client.request(options);
     return {
@@ -272,7 +278,7 @@ export default class Vault {
         // ttl: `${this._signExpiryHours}h`,
       },
     };
-    this.logger.push({ options }).log(`sending signHubCSR request`);
+    this.logger.push({ options }).verbose(`sending signHubCSR request`);
 
     const { data } = await this.client.request(options);
 
@@ -351,8 +357,8 @@ export default class Vault {
         method: 'GET',
       });
       return response;
-    } catch (e: any) {
-      this.logger.push(e).log('Vault health check failed');
+    } catch (err: unknown) {
+      this.logger.warn('Vault health check failed: ', err);
       return { status: 'DOWN' };
     }
   }
