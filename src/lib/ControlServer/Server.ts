@@ -86,7 +86,7 @@ class Server extends ws.Server {
 
       socket.on('message', this._handle(socket, logger));
     });
-    this._logger.verbose(`running on ${this.address()}...`);
+    this._logger.info(`ws Control Server is running...`, { addressInfo: this.address() });
     this._startHeartbeat();
   }
 
@@ -122,7 +122,7 @@ class Server extends ws.Server {
       client.terminate();
     }
     await closing;
-    this._logger.log('Control server shutdown complete');
+    this._logger.info('Control server shutdown complete');
   }
 
   _handle(client, logger: Logger.SdkLogger) {
@@ -133,7 +133,7 @@ class Server extends ws.Server {
       try {
         msg = deserialise(data);
       } catch (err) {
-        logger.push({ data }).log("Couldn't parse received message");
+        logger.push({ data }).warn("Couldn't parse received message");
         client.send(build.ERROR.NOTIFY.JSON_PARSE_ERROR());
       }
       logger.push({ msg }).log('Handling received message');
@@ -168,7 +168,7 @@ class Server extends ws.Server {
           }
           break;
         case MESSAGE.ERROR:
-          logger.push({ msg }).log('Received error message');
+          logger.push({ msg }).warn('Received error message');
           break;
         default:
           client.send(build.ERROR.NOTIFY.UNSUPPORTED_MESSAGE(msg.id));
@@ -228,7 +228,7 @@ class Server extends ws.Server {
       isAlive: data.isAlive,
       readyState: client.readyState,
     }));
-    this._logger.push({ clientDetails }).log('Connected client details');
+    this._logger.verbose('Connected client details: ', { clientDetails });
     return clientDetails;
   }
 
