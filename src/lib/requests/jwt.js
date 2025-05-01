@@ -54,7 +54,7 @@ class JWTSingleton {
                 headers,
                 body,
             };
-            this._logger.push({ reqOpts }).info('Executing Login...');
+            this._logger.push({ reqOpts }).verbose('Executing Login...');
 
             const { statusCode, data } = await request({ ...reqOpts, agent: this.agent });
 
@@ -69,7 +69,7 @@ class JWTSingleton {
 
             return data.access_token;
         } catch (error) {
-            this._logger.error('Error Login', error);
+            this._logger.error('Error Login: ', error);
             throw error;
         }
     }

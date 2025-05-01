@@ -252,9 +252,11 @@ export default class Vault {
       method: 'POST',
       json: reqJson,
     };
-    this.logger.push({ options }).verbose(`sending createDFSPServerCert request`);
+    this.logger.verbose(`sending createDFSPServerCert request...`, { options });
 
     const { data } = await this.client.request(options);
+    this.logger.verbose('sending createDFSPServerCert request is done');
+
     return {
       intermediateChain: data.ca_chain,
       rootCertificate: data.issuing_ca,
@@ -274,13 +276,14 @@ export default class Vault {
       method: 'POST',
       json: {
         common_name: this.cfg.commonName,
-        csr: csr,
         // ttl: `${this._signExpiryHours}h`,
       },
     };
-    this.logger.push({ options }).verbose(`sending signHubCSR request`);
+    this.logger.verbose(`sending signHubCSR request...`, { options });
+    options.json['csr'] = csr;
 
     const { data } = await this.client.request(options);
+    this.logger.verbose(`sending signHubCSR request is done: `, { data });
 
     return data;
   }
