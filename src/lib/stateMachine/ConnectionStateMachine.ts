@@ -81,7 +81,7 @@ class ConnectionStateMachine {
   }
 
   private handleTransition(state: State<Context, Event>) {
-    this.opts.logger.push({ state: state.value }).log('Transition');
+    this.opts.logger.push({ state: state.value }).debug('Transition');
     this.context = state.context;
     this.updateActions(state.actions);
     this.setState(state);
@@ -101,6 +101,7 @@ class ConnectionStateMachine {
   }
 
   private updateActions(acts: Array<ActionType>) {
+    this.opts.logger.debug('updateActions...', { acts });
     acts.forEach((action) => {
       if (action.type === 'xstate.cancel') {
         delete this.actions[action.sendId];

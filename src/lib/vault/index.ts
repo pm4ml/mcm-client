@@ -283,7 +283,7 @@ export default class Vault {
     options.json['csr'] = csr;
 
     const { data } = await this.client.request(options);
-    this.logger.verbose(`sending signHubCSR request is done: `, { data });
+    this.logger.verbose(`sending signHubCSR request is done`);
 
     return data;
   }
