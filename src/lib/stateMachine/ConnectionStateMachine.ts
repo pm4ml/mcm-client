@@ -81,7 +81,7 @@ class ConnectionStateMachine {
   }
 
   private handleTransition(state: State<Context, Event>) {
-    this.opts.logger.push({ state: state.value }).log('Transition');
+    this.opts.logger.push({ state: state.value }).debug('Transition');
     this.context = state.context;
     this.updateActions(state.actions);
     this.setState(state);
@@ -96,11 +96,12 @@ class ConnectionStateMachine {
         actions: this.actions,
       })
       .catch((err) => {
-        this.opts.logger.push({ err }).log('Failed to set state machine state');
+        this.opts.logger.warn('Failed to set state machine state', err);
       });
   }
 
   private updateActions(acts: Array<ActionType>) {
+    this.opts.logger.debug('updateActions...', { acts });
     acts.forEach((action) => {
       if (action.type === 'xstate.cancel') {
         delete this.actions[action.sendId];
@@ -128,7 +129,7 @@ class ConnectionStateMachine {
     const isPrevious = state?.hash === this.hash && state?.version === ConnectionStateMachine.VERSION;
 
     if (isPrevious) {
-      this.opts.logger.log('Restoring state machine from previous state');
+      this.opts.logger.info('Restoring state machine from previous state');
       this.actions = state.actions;
       this.service.start({
         ...state.state,
@@ -136,7 +137,7 @@ class ConnectionStateMachine {
       });
     } else {
       const reason = state ? 'state machine changed' : 'no previous state found';
-      this.opts.logger.log(`Starting state machine from scratch because ${reason}`);
+      this.opts.logger.info(`Starting state machine from scratch because ${reason}`);
       this.service.start();
     }
 
@@ -160,7 +161,7 @@ class ConnectionStateMachine {
       inspect({
         server: new WebSocket.Server({ port }),
       });
-      this.opts.logger.log(
+      this.opts.logger.verbose(
         `StateMachine introspection URL: https://stately.ai/viz?inspect&server=ws://localhost:${port}`
       );
     }
