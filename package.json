@@ -1,6 +1,6 @@
 {
   "name": "@pm4ml/mcm-client",
-  "version": "3.5.4",
+  "version": "3.5.5-snapshot.1",
   "description": "Client service for Connection Manager API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
