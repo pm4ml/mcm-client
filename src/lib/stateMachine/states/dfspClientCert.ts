@@ -11,6 +11,7 @@
 import { AnyEventObject, assign, DoneEventObject, MachineConfig, send } from 'xstate';
 import { MachineOpts } from './MachineOpts';
 import { invokeRetry } from './invokeRetry';
+import { stop } from 'xstate/lib/actions';
 
 export namespace DfspClientCert {
   export interface Context {
@@ -22,7 +23,14 @@ export namespace DfspClientCert {
     };
   }
 
-  export type Event = DoneEventObject | { type: 'DFSP_CLIENT_CERT_CONFIGURED' };
+  export type Event =
+    | DoneEventObject
+    | { type: 'DFSP_CLIENT_CERT_CONFIGURED' }
+    | { type: 'RECREATE_DFSP_CLIENT_CERT' }
+    | { type: 'CREATING_DFSP_CSR' }
+    | { type: 'UPLOADING_DFSP_CSR' }
+    | { type: 'FETCHING_DFSP_CLIENT_CERT' }
+    | { type: 'COMPLETING_DFSP_CLIENT_CERT' };
 
   enum CertState {
     CERT_SIGNED = 'CERT_SIGNED',
@@ -31,8 +39,42 @@ export namespace DfspClientCert {
   export const createState = <TContext extends Context>(opts: MachineOpts): MachineConfig<TContext, any, Event> => ({
     id: 'dfspClientCert',
     initial: 'creatingDfspCsr',
+    on: {
+      RECREATE_DFSP_CLIENT_CERT: {
+        actions: [
+          stop('createCsr'),
+          stop('uploadCsr'),
+          stop('getDfspClientCert'),
+          assign({
+            dfspClientCert: (ctx): any => ({
+              ...ctx.dfspClientCert,
+              id: undefined,
+              privateKey: undefined,
+              csr: undefined,
+              cert: undefined,
+            }),
+          }),
+          send({
+            type: 'UPDATE_CONNECTOR_CONFIG',
+            config: {
+              outbound: {
+                tls: {
+                  creds: {
+                    cert: undefined,
+                    key: undefined,
+                  },
+                },
+              },
+            },
+          }),
+        ],
+        target: '.creatingDfspCsr',
+        internal: false,
+      },
+    },
     states: {
       creatingDfspCsr: {
+        entry: send('CREATING_DFSP_CSR'),
         invoke: {
           id: 'createCsr',
           src: () =>
@@ -40,6 +82,8 @@ export namespace DfspClientCert {
               id: 'createCsr',
               logger: opts.logger,
               retryInterval: opts.refreshIntervalSeconds * 1000,
+              machine: 'DFSP_CLIENT_CERT',
+              state: 'creatingDfspCsr',
               service: async () => opts.vault.createCSR(),
             }),
           onDone: {
@@ -51,6 +95,7 @@ export namespace DfspClientCert {
         },
       },
       uploadingDfspCsr: {
+        entry: send('UPLOADING_DFSP_CSR'),
         invoke: {
           id: 'uploadCsr',
           src: (ctx) =>
@@ -58,6 +103,8 @@ export namespace DfspClientCert {
               id: 'uploadCsr',
               logger: opts.logger,
               retryInterval: opts.refreshIntervalSeconds * 1000,
+              machine: 'DFSP_CLIENT_CERT',
+              state: 'uploadingDfspCsr',
               service: () => opts.dfspCertificateModel.uploadCSR({ csr: ctx.dfspClientCert!.csr! }),
             }),
           onDone: {
@@ -72,6 +119,7 @@ export namespace DfspClientCert {
         },
       },
       gettingDfspClientCert: {
+        entry: send('FETCHING_DFSP_CLIENT_CERT'),
         invoke: {
           id: 'getDfspClientCert',
           src: (ctx) =>
@@ -79,6 +127,8 @@ export namespace DfspClientCert {
               id: 'getDfspClientCert',
               logger: opts.logger,
               retryInterval: opts.refreshIntervalSeconds * 1000,
+              machine: 'DFSP_CLIENT_CERT',
+              state: 'gettingDfspClientCert',
               service: () =>
                 opts.dfspCertificateModel.getClientCertificate({ inboundEnrollmentId: ctx.dfspClientCert!.id! }),
             }),
@@ -113,6 +163,7 @@ export namespace DfspClientCert {
         },
       },
       completed: {
+        entry: send('COMPLETING_DFSP_CLIENT_CERT'),
         always: {
           target: 'retry',
           actions: send('DFSP_CLIENT_CERT_CONFIGURED'),

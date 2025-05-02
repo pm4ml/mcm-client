@@ -148,6 +148,9 @@ class ConnectionStateMachine {
     this.service.stop();
   }
 
+  public getState() {
+    return this.service.state.context.progressMonitor;
+  }
   public getContext() {
     return this.context;
   }
