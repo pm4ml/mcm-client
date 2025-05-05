@@ -231,7 +231,7 @@ class ConnectionStateMachine {
     const states = this.getState(true);
     dfspEndpointModel.uploadDfspStatesStatus(states)
       .then((result) => { logger.debug('States status uploaded:', { result }); })
-      .catch((err) => { logger.warn('Failed to upload states status', err); })
+      .catch((err) => { logger.warn('Failed to upload states status: ', err); })
       .finally(() => {
         this.reportStatesStatusTimeout = setTimeout(() => this.reportStatesStatus(), reportStatesStatusIntervalSeconds * 1000);
       })
