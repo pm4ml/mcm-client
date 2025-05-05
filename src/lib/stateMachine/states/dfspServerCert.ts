@@ -29,7 +29,12 @@ export namespace DfspServerCert {
     | DoneEventObject
     | { type: 'DFSP_SERVER_CERT_CONFIGURED' }
     | CreateDfspServerCertEvent
-    | DfspCA.Event;
+    | DfspCA.Event
+    | { type: 'DFSP_SERVER_CERT_IDLE' }
+    | { type: 'REQUESTING_NEW_DFSP_SERVER_CERT' }
+    | { type: 'RENEWING_MANAGED_DFSP_SERVER_CERT' }
+    | { type: 'CREATING_DFSP_SERVER_CERT' }
+    | { type: 'UPLOADING_DFSP_SERVER_CERT_TO_HUB' };
 
   export const createState = <TContext extends Context>(opts: MachineOpts): MachineConfig<TContext, any, Event> => ({
     id: 'dfspServerCert',
@@ -41,12 +46,14 @@ export namespace DfspServerCert {
     states: {
       idle: {},
       requestedNewDfspServerCert: {
+        entry: send('REQUESTING_NEW_DFSP_SERVER_CERT'),
         always: [
           { target: 'renewingManagedDfspServerCert', cond: 'managedByCertManager' },
           { target: 'creatingDfspServerCert' },
         ],
       },
       renewingManagedDfspServerCert: {
+        entry: send('RENEWING_MANAGED_DFSP_SERVER_CERT'),
         invoke: {
           id: 'renewManagedDfspServerCert',
           src: () =>
@@ -54,6 +61,8 @@ export namespace DfspServerCert {
               id: 'renewManagedDfspServerCert',
               logger: opts.logger,
               retryInterval: opts.refreshIntervalSeconds * 1000,
+              machine: 'DFSP_SERVER_CERT',
+              state: 'renewingManagedDfspServerCert',
               service: async () => opts.certManager!.renewServerCert(),
             }),
           onDone: {
@@ -63,6 +72,7 @@ export namespace DfspServerCert {
         },
       },
       creatingDfspServerCert: {
+        entry: send('CREATING_DFSP_SERVER_CERT'),
         invoke: {
           id: 'createDFSPServerCert',
           src: (ctx, event) =>
@@ -70,6 +80,8 @@ export namespace DfspServerCert {
               id: 'createDFSPServerCert',
               logger: opts.logger,
               retryInterval: opts.refreshIntervalSeconds * 1000,
+              machine: 'DFSP_SERVER_CERT',
+              state: 'creatingDfspServerCert',
               service: async () =>
                 opts.vault.createDFSPServerCert(
                   (event as CreateDfspServerCertEvent).csr || opts.config.dfspServerCsrParameters
@@ -100,6 +112,7 @@ export namespace DfspServerCert {
         },
       },
       uploadingDfspServerCertToHub: {
+        entry: send('UPLOADING_DFSP_SERVER_CERT_TO_HUB'),
         invoke: {
           id: 'dfspServerCertUpload',
           src: (ctx) =>
@@ -107,6 +120,8 @@ export namespace DfspServerCert {
               id: 'dfspServerCertUpload',
               logger: opts.logger,
               retryInterval: opts.refreshIntervalSeconds * 1000,
+              machine: 'DFSP_SERVER_CERT',
+              state: 'uploadingDfspServerCertToHub',
               service: async () => {
                 const { privateKey, ...body } = ctx.dfspServerCert!;
                 return opts.dfspCertificateModel.uploadServerCertificates(body);
