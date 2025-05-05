@@ -35,10 +35,6 @@ class DFSPConfigModel {
         return this._mcmServerRequest.get(`/dfsps/${this._dfspId}/status`);
     }
 
-    async uploadDfspStatesStatus(states) {
-        return this._mcmServerRequest.post(`/dfsps/${this._dfspId}/states`, states);
-    }
-
     /**
      * Gets DFSPs details from MCM Server by MonetaryZone
      *

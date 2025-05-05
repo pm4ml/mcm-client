@@ -19,6 +19,7 @@ export interface MachineOpts {
   logger: SDK.Logger.SdkLogger;
   vault: Vault;
   refreshIntervalSeconds: number;
+  reportStatesStatusIntervalSeconds?: number;
   dfspCertificateModel: DFSPCertificateModel;
   dfspEndpointModel: DFSPEndpointModel;
   hubCertificateModel: HubCertificateModel;
