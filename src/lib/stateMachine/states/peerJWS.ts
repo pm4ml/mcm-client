@@ -12,6 +12,7 @@ import { AnyEventObject, assign, DoneEventObject, MachineConfig, send } from 'xs
 import { MachineOpts } from './MachineOpts';
 import { invokeRetry } from './invokeRetry';
 import _ from 'lodash';
+import { ProgressMonitor } from "./progressMonitor";
 
 export namespace PeerJWS {
   export type JWS = {
@@ -48,7 +49,7 @@ export namespace PeerJWS {
               id: 'getPeerDFSPJWSCertificates',
               logger: opts.logger,
               retryInterval: opts.refreshIntervalSeconds * 1000,
-              machine: 'PEER_JWS',
+              machine: ProgressMonitor.MachineName.PEER_JWS,
               state: 'fetchingPeerJWS',
               service: async () => opts.dfspCertificateModel.getAllJWSCertificates(),
             }),
@@ -107,7 +108,7 @@ export namespace PeerJWS {
               id: 'notifyPeerJWS',
               logger: opts.logger,
               retryInterval: opts.refreshIntervalSeconds * 1000,
-              machine: 'PEER_JWS',
+              machine: ProgressMonitor.MachineName.PEER_JWS,
               state: 'notifyPeerJWS',
               service: async () => opts.ControlServer.notifyPeerJWS(ctx.peerJWS),
             }),

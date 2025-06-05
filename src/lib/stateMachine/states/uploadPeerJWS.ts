@@ -13,6 +13,7 @@ import { MachineOpts } from './MachineOpts';
 import { invokeRetry } from './invokeRetry';
 import { PeerJWS } from './peerJWS';
 import _ from 'lodash';
+import { ProgressMonitor } from "./progressMonitor";
 
 type JWS = PeerJWS.JWS;
 
@@ -41,7 +42,7 @@ export namespace UploadPeerJWS {
         entry: send('UPLOAD_PEER_JWS_IDLE'),
       },
       comparePeerJWS: {
-        entry: send('COMPARING_PEER_JWS'),
+        entry: send('COMPARING_UPLOAD_PEER_JWS'),
         invoke: {
           src: async (context, event: AnyEventObject) => {
             const peerJWS = event.data;
@@ -84,7 +85,7 @@ export namespace UploadPeerJWS {
               id: 'uploadingPeerJWS',
               logger: opts.logger,
               retryInterval: opts.refreshIntervalSeconds * 1000,
-              machine: 'uploadPeerJWS',
+              machine: ProgressMonitor.MachineName.UPLOAD_PEER_JWS,
               state: 'uploadingPeerJWS',
               service: async () => {
                 const changesToUpload = event.data.changes.map(({ dfspId, publicKey, createdAt }) => {
@@ -104,7 +105,7 @@ export namespace UploadPeerJWS {
             }),
           onDone: {
             target: 'idle',
-            actions: [assign({ peerJWS: (_context, event) => event.data.updatedPeerJWS })],
+            actions: [assign({ peerJWS: (_context, event) => event.data.updatedPeerJWS }), send('UPLOAD_PEER_JWS_COMPLETED')],
           },
           onError: {
             target: 'idle',

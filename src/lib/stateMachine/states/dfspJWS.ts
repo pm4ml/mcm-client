@@ -12,6 +12,7 @@ import { assign, send, MachineConfig, DoneEventObject } from 'xstate';
 import { MachineOpts } from './MachineOpts';
 import { invokeRetry } from './invokeRetry';
 import { stop } from 'xstate/lib/actions';
+import { ProgressMonitor } from "./progressMonitor";
 
 export namespace DfspJWS {
   export type Context = {
@@ -62,7 +63,7 @@ export namespace DfspJWS {
               id: 'dfspJWSCreate',
               logger: opts.logger,
               retryInterval: opts.refreshIntervalSeconds * 1000,
-              machine: 'DFSP_JWS',
+              machine: ProgressMonitor.MachineName.DFSP_JWS,
               state: 'creating',
               service: async () => opts.vault.createJWS(),
             }),
@@ -87,7 +88,7 @@ export namespace DfspJWS {
               id: 'dfspJWSUpload',
               logger: opts.logger,
               retryInterval: opts.refreshIntervalSeconds * 1000,
-              machine: 'DFSP_JWS',
+              machine: ProgressMonitor.MachineName.DFSP_JWS,
               state: 'uploadingToHub',
               service: async () =>
                 opts.dfspCertificateModel.uploadJWS({

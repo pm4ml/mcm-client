@@ -100,6 +100,11 @@ export namespace ProgressMonitor {
     DFSP_JWS_PROPAGATED: { machine: MachineName.DFSP_JWS, state: ProgressState.COMPLETED },
     // ENDPOINT_CONFIG events
     ENDPOINT_CONFIG_PROPAGATED: { machine: MachineName.ENDPOINT_CONFIG, state: ProgressState.COMPLETED },
+    // UPLOAD_PEER_JWS
+    COMPARING_UPLOAD_PEER_JWS: { machine: MachineName.UPLOAD_PEER_JWS, state: ProgressState.IN_PROGRESS },
+    UPLOADING_PEER_JWS: { machine: MachineName.UPLOAD_PEER_JWS, state: ProgressState.IN_PROGRESS },
+    UPLOAD_PEER_JWS_COMPLETED: { machine: MachineName.UPLOAD_PEER_JWS, state: ProgressState.COMPLETED }, 
+
   };
 
   export const createState = <TContext extends Context>(opts: MachineOpts): MachineConfig<TContext, any, any> => ({
@@ -110,6 +115,7 @@ export namespace ProgressMonitor {
         actions: assign<Context>({
           progressMonitor: (ctx, event) => {
             if (!(event as FailureErrorMessageEvent).machine) return ctx.progressMonitor;
+            if(!((event as FailureErrorMessageEvent).machine in MachineName)) return ctx.progressMonitor;
             return {
               ...ctx.progressMonitor!,
               [(event as FailureErrorMessageEvent).machine]: {
@@ -181,6 +187,11 @@ export namespace ProgressMonitor {
                 stateDescription: `Service not initialized`,
               },
               ENDPOINT_CONFIG: {
+                status: ProgressState.PENDING,
+                lastUpdated: new Date(),
+                stateDescription: `Service not initialized`,
+              },
+              UPLOAD_PEER_JWS: {
                 status: ProgressState.PENDING,
                 lastUpdated: new Date(),
                 stateDescription: `Service not initialized`,
