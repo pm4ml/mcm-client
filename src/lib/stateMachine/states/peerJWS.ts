@@ -59,50 +59,55 @@ export namespace PeerJWS {
       comparePeerJWS: {
         entry: send('COMPARING_PEER_JWS'),
         invoke: {
-          src: async (context: TContext, event: AnyEventObject) => {
+          src: async (context: Context, event: DoneEventObject & { data?: JWS[] }) => {
             const peerJWS = event.data as JWS[];
-            const changes = _.differenceWith(
-              peerJWS,
-              context.peerJWS ?? [],
-              (a: JWS, b: JWS) => a.dfspId === b.dfspId && a.createdAt <= b.createdAt
-            );
-            if (changes.length === 0) {
-              // No changes detected, return a flag
-              return { changes: [], updatedPeerJWS: context.peerJWS ?? [], noChanges: true };
-            }
-            // Iterate through changes array and replace those values in the context with the new values
-            // Clone the context.peerJWS array
-            const updatedPeerJWS = context.peerJWS ? _.cloneDeep(context.peerJWS) : [];
 
-            changes.forEach((change: JWS) => {
-              const index = updatedPeerJWS.findIndex((jws: JWS) => jws.dfspId === change.dfspId);
-              if (index === -1) {
-                updatedPeerJWS.push(change);
-              } else {
-                updatedPeerJWS[index] = change;
+            // Deduplicate: keep only the latest JWS per dfspId
+            const latestJWSMap = new Map<string, JWS>();
+            for (const jws of peerJWS) {
+              const existing = latestJWSMap.get(jws.dfspId);
+              if (!existing || jws.createdAt > existing.createdAt) {
+                latestJWSMap.set(jws.dfspId, jws);
               }
-            });
-            return { changes, updatedPeerJWS, noChanges: false };
+            }
+            const dedupedPeerJWS = Array.from(latestJWSMap.values());
+
+            // Compare with context.peerJWS (also deduped)
+            const prevJWSMap = new Map<string, JWS>();
+            if (context.peerJWS) {
+              for (const jws of context.peerJWS) {
+                const existing = prevJWSMap.get(jws.dfspId);
+                if (!existing || jws.createdAt > existing.createdAt) {
+                  prevJWSMap.set(jws.dfspId, jws);
+                }
+              }
+            }
+            const prevDedupedPeerJWS = Array.from(prevJWSMap.values());
+
+            // Find changes (new or updated keys)
+            const changes = _.differenceWith(
+              dedupedPeerJWS,
+              prevDedupedPeerJWS,
+              (a, b) => a.dfspId === b.dfspId && a.publicKey === b.publicKey && a.createdAt === b.createdAt
+            );
+
+            // Update context with deduped latest JWS
+            const updatedPeerJWS = dedupedPeerJWS;
+
+            return { changes, updatedPeerJWS };
           },
-          onDone: [
-            {
-              target: 'completed',
-              cond: (_context, event) => event.data.noChanges,
-              actions: send('NO_PEER_JWS_CHANGES'),
-            },
-            {
-              target: 'notifyPeerJWS',
-              actions: [
-                assign({ peerJWS: (_context, event) => event.data.updatedPeerJWS }),
-                send((_context, event) => {
-                  const peerJWSKeys = Object.fromEntries(
-                    event.data.updatedPeerJWS.map((e: JWS) => [e.dfspId, e.publicKey])
-                  );
-                  return { type: 'UPDATE_CONNECTOR_CONFIG', config: { peerJWSKeys } };
-                }),
-              ],
-            },
-          ],
+          onDone: {
+            target: 'notifyPeerJWS',
+            actions: [
+              assign({ peerJWS: (_context, event: any) => event.data.updatedPeerJWS }),
+              send((_context, event: any) => {
+                const peerJWSKeys = Object.fromEntries(
+                  (event.data.updatedPeerJWS as JWS[]).map((e: JWS) => [e.dfspId, e.publicKey])
+                );
+                return { type: 'UPDATE_CONNECTOR_CONFIG', config: { peerJWSKeys } };
+              }),
+            ],
+          },
           onError: {
             target: 'completed',
             actions: send('NO_PEER_JWS_CHANGES'),
@@ -146,7 +151,6 @@ export namespace PeerJWS {
     peerJWSChanged: (context: TContext, event: AnyEventObject) => !_.isEqual(event.data, context.peerJWS),
   });
 
-  // export const createActions = <TContext extends Context>() => ({
   //   peerJWSChanged: (context: TContext, event: AnyEventObject) => stringify(event.data) !== stringify(context.peerJWS),
   // });
 }
