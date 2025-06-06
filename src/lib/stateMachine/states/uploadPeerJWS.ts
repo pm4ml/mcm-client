@@ -13,7 +13,6 @@ import { MachineOpts } from './MachineOpts';
 import { invokeRetry } from './invokeRetry';
 import { PeerJWS } from './peerJWS';
 import _ from 'lodash';
-import { ProgressMonitor } from "./progressMonitor";
 
 type JWS = PeerJWS.JWS;
 
@@ -85,7 +84,7 @@ export namespace UploadPeerJWS {
               id: 'uploadingPeerJWS',
               logger: opts.logger,
               retryInterval: opts.refreshIntervalSeconds * 1000,
-              machine: ProgressMonitor.MachineName.UPLOAD_PEER_JWS,
+              machine: 'UPLOAD_PEER_JWS',
               state: 'uploadingPeerJWS',
               service: async () => {
                 const changesToUpload = event.data.changes.map(({ dfspId, publicKey, createdAt }) => {
