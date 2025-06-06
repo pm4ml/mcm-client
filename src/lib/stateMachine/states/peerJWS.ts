@@ -59,40 +59,50 @@ export namespace PeerJWS {
       comparePeerJWS: {
         entry: send('COMPARING_PEER_JWS'),
         invoke: {
-          src: async (context, event: AnyEventObject) => {
-            const peerJWS = event.data;
+          src: async (context: TContext, event: AnyEventObject) => {
+            const peerJWS = event.data as JWS[];
             const changes = _.differenceWith(
-              peerJWS as JWS[],
-              context.peerJWS!,
-              (a, b) => a.dfspId === b.dfspId && a.createdAt <= b.createdAt
+              peerJWS,
+              context.peerJWS ?? [],
+              (a: JWS, b: JWS) => a.dfspId === b.dfspId && a.createdAt <= b.createdAt
             );
             if (changes.length === 0) {
-              throw new Error('No changes detected');
+              // No changes detected, return a flag
+              return { changes: [], updatedPeerJWS: context.peerJWS ?? [], noChanges: true };
             }
             // Iterate through changes array and replace those values in the context with the new values
             // Clone the context.peerJWS array
             const updatedPeerJWS = context.peerJWS ? _.cloneDeep(context.peerJWS) : [];
 
-            changes.forEach((change) => {
-              const index = updatedPeerJWS!.findIndex((jws) => jws.dfspId === change.dfspId);
+            changes.forEach((change: JWS) => {
+              const index = updatedPeerJWS.findIndex((jws: JWS) => jws.dfspId === change.dfspId);
               if (index === -1) {
-                updatedPeerJWS!.push(change);
+                updatedPeerJWS.push(change);
               } else {
-                updatedPeerJWS![index] = change;
+                updatedPeerJWS[index] = change;
               }
             });
-            return { changes, updatedPeerJWS };
+            return { changes, updatedPeerJWS, noChanges: false };
           },
-          onDone: {
-            target: 'notifyPeerJWS',
-            actions: [
-              assign({ peerJWS: (_context, event) => event.data.updatedPeerJWS }),
-              send((_context, event) => {
-                const peerJWSKeys = Object.fromEntries(event.data.updatedPeerJWS.map((e) => [e.dfspId, e.publicKey]));
-                return { type: 'UPDATE_CONNECTOR_CONFIG', config: { peerJWSKeys } };
-              }),
-            ],
-          },
+          onDone: [
+            {
+              target: 'completed',
+              cond: (_context, event) => event.data.noChanges,
+              actions: send('NO_PEER_JWS_CHANGES'),
+            },
+            {
+              target: 'notifyPeerJWS',
+              actions: [
+                assign({ peerJWS: (_context, event) => event.data.updatedPeerJWS }),
+                send((_context, event) => {
+                  const peerJWSKeys = Object.fromEntries(
+                    event.data.updatedPeerJWS.map((e: JWS) => [e.dfspId, e.publicKey])
+                  );
+                  return { type: 'UPDATE_CONNECTOR_CONFIG', config: { peerJWSKeys } };
+                }),
+              ],
+            },
+          ],
           onError: {
             target: 'completed',
             actions: send('NO_PEER_JWS_CHANGES'),
