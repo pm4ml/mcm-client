@@ -11,7 +11,6 @@
 import { AnyEventObject, assign, DoneEventObject, MachineConfig, send } from 'xstate';
 import { MachineOpts } from './MachineOpts';
 import { invokeRetry } from './invokeRetry';
-import { stop } from 'xstate/lib/actions';
 
 export namespace DfspClientCert {
   export interface Context {
@@ -40,11 +39,8 @@ export namespace DfspClientCert {
     id: 'dfspClientCert',
     initial: 'creatingDfspCsr',
     on: {
-      RECREATE_DFSP_CLIENT_CERT: {
+      CREATE_DFSP_CLIENT_CERT: {
         actions: [
-          stop('createCsr'),
-          stop('uploadCsr'),
-          stop('getDfspClientCert'),
           assign({
             dfspClientCert: (ctx): any => ({
               ...ctx.dfspClientCert,
@@ -54,19 +50,20 @@ export namespace DfspClientCert {
               cert: undefined,
             }),
           }),
-          send({
-            type: 'UPDATE_CONNECTOR_CONFIG',
-            config: {
-              outbound: {
-                tls: {
-                  creds: {
-                    cert: undefined,
-                    key: undefined,
-                  },
-                },
-              },
-            },
-          }),
+          // TODO: Not sure how to clear the outbound tls as doing it like this will break the sdk scheme adapter
+          // send({
+          //   type: 'UPDATE_CONNECTOR_CONFIG',
+          //   config: {
+          //     outbound: {
+          //       tls: {
+          //         creds: {
+          //           cert: undefined,
+          //           key: undefined,
+          //         },
+          //       },
+          //     },
+          //   },
+          // }),
         ],
         target: '.creatingDfspCsr',
         internal: false,
