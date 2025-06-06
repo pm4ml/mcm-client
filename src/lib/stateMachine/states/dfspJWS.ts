@@ -21,7 +21,11 @@ export namespace DfspJWS {
     };
   };
 
-  export type Event = DoneEventObject | { type: 'CREATE_JWS' | 'DFSP_JWS_PROPAGATED' };
+  export type Event =
+    | DoneEventObject
+    | { type: 'CREATE_JWS' | 'DFSP_JWS_PROPAGATED' }
+    | { type: 'CREATING_DFSP_JWS' }
+    | { type: 'UPLOADING_DFSP_JWS_TO_HUB' };
 
   export const createState = <TContext extends Context>(opts: MachineOpts): MachineConfig<TContext, any, Event> => ({
     id: 'createJWS',
@@ -32,6 +36,7 @@ export namespace DfspJWS {
     states: {
       idle: {},
       creating: {
+        entry: send('CREATING_DFSP_JWS'),
         invoke: {
           id: 'dfspJWSCreate',
           src: () =>
@@ -39,6 +44,8 @@ export namespace DfspJWS {
               id: 'dfspJWSCreate',
               logger: opts.logger,
               retryInterval: opts.refreshIntervalSeconds * 1000,
+              machine: 'DFSP_JWS',
+              state: 'creating',
               service: async () => opts.vault.createJWS(),
             }),
           onDone: {
@@ -54,6 +61,7 @@ export namespace DfspJWS {
         },
       },
       uploadingToHub: {
+        entry: send('UPLOADING_DFSP_JWS_TO_HUB'),
         invoke: {
           id: 'dfspJWSUpload',
           src: (ctx) =>
@@ -61,6 +69,8 @@ export namespace DfspJWS {
               id: 'dfspJWSUpload',
               logger: opts.logger,
               retryInterval: opts.refreshIntervalSeconds * 1000,
+              machine: 'DFSP_JWS',
+              state: 'uploadingToHub',
               service: async () =>
                 opts.dfspCertificateModel.uploadJWS({
                   publicKey: ctx.dfspJWS!.publicKey,

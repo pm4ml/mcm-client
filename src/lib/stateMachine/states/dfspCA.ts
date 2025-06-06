@@ -26,7 +26,16 @@ export namespace DfspCA {
   type CreateExtCAEvent = { type: 'CREATE_EXT_CA'; rootCert: string; intermediateChain: string; privateKey: string };
 
   // type EventIn = { type: 'CREATE_CA'; csr: CSR } | DoneEventObject;
-  export type Event = DoneEventObject | CreateIntCAEvent | CreateExtCAEvent | { type: 'DFSP_CA_PROPAGATED' };
+  export type Event =
+    | DoneEventObject
+    | CreateIntCAEvent
+    | CreateExtCAEvent
+    | { type: 'DFSP_CA_PROPAGATED' }
+    | { type: 'FAILED'; machine: string; state: string; error: string; retries: number }
+    | { type: 'FETCHING_PREBUILT_CA' }
+    | { type: 'CREATE_INT_CA' }
+    | { type: 'CREATE_EXT_CA' }
+    | { type: 'UPLOADING_TO_HUB' };
 
   export const createState = <TContext extends Context>(opts: MachineOpts): MachineConfig<TContext, any, Event> => ({
     id: 'createCA',
@@ -39,6 +48,7 @@ export namespace DfspCA {
     states: {
       idle: {},
       gettingPrebuiltCA: {
+        entry: send('FETCHING_PREBUILT_CA'),
         invoke: {
           id: 'getPrebuiltCA',
           src: () =>
@@ -46,6 +56,8 @@ export namespace DfspCA {
               id: 'getPrebuiltCA',
               logger: opts.logger,
               retryInterval: opts.refreshIntervalSeconds * 1000,
+              machine: 'DFSP_CA',
+              state: 'gettingPrebuiltCA',
               service: async () => opts.vault.getCA(),
             }),
           onDone: {
@@ -55,6 +67,7 @@ export namespace DfspCA {
         },
       },
       creatingIntCA: {
+        entry: send('CREATING_INT_CA'),
         invoke: {
           id: 'dfspIntCACreate',
           src: (ctx, event) =>
@@ -62,6 +75,8 @@ export namespace DfspCA {
               id: 'dfspIntCACreate',
               logger: opts.logger,
               retryInterval: opts.refreshIntervalSeconds * 1000,
+              machine: 'DFSP_CA',
+              state: 'creatingIntCA',
               service: async () => opts.vault.createCA((event as CreateIntCAEvent).subject),
             }),
           onDone: {
@@ -71,6 +86,7 @@ export namespace DfspCA {
         },
       },
       creatingExtCA: {
+        entry: send('CREATING_EXT_CA'),
         invoke: {
           id: 'dfspExtCACreate',
           src: (ctx, event) =>
@@ -78,6 +94,8 @@ export namespace DfspCA {
               id: 'dfspExtCACreate',
               logger: opts.logger,
               retryInterval: opts.refreshIntervalSeconds * 1000,
+              machine: 'DFSP_CA',
+              state: 'creatingExtCA',
               service: async () => {
                 const ev = event as CreateExtCAEvent;
                 const cert = ev.rootCert || '';
@@ -94,6 +112,7 @@ export namespace DfspCA {
         },
       },
       uploadingToHub: {
+        entry: send('UPLOADING_TO_HUB'),
         invoke: {
           id: 'dfspCAUpload',
           src: (ctx) =>
@@ -101,6 +120,8 @@ export namespace DfspCA {
               id: 'dfspCAUpload',
               logger: opts.logger,
               retryInterval: opts.refreshIntervalSeconds * 1000,
+              machine: 'DFSP_CA',
+              state: 'uploadingToHub',
               service: async () =>
                 opts.dfspCertificateModel.uploadDFSPCA({
                   rootCertificate: ctx.dfspCA!.cert,

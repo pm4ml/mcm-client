@@ -22,7 +22,14 @@ export namespace DfspClientCert {
     };
   }
 
-  export type Event = DoneEventObject | { type: 'DFSP_CLIENT_CERT_CONFIGURED' };
+  export type Event =
+    | DoneEventObject
+    | { type: 'DFSP_CLIENT_CERT_CONFIGURED' }
+    | { type: 'RECREATE_DFSP_CLIENT_CERT' }
+    | { type: 'CREATING_DFSP_CSR' }
+    | { type: 'UPLOADING_DFSP_CSR' }
+    | { type: 'FETCHING_DFSP_CLIENT_CERT' }
+    | { type: 'COMPLETING_DFSP_CLIENT_CERT' };
 
   enum CertState {
     CERT_SIGNED = 'CERT_SIGNED',
@@ -31,8 +38,12 @@ export namespace DfspClientCert {
   export const createState = <TContext extends Context>(opts: MachineOpts): MachineConfig<TContext, any, Event> => ({
     id: 'dfspClientCert',
     initial: 'creatingDfspCsr',
+    on: {
+      CREATE_DFSP_CLIENT_CERT: { target: '.creatingDfspCsr', internal: false },
+    },
     states: {
       creatingDfspCsr: {
+        entry: send('CREATING_DFSP_CSR'),
         invoke: {
           id: 'createCsr',
           src: () =>
@@ -40,6 +51,8 @@ export namespace DfspClientCert {
               id: 'createCsr',
               logger: opts.logger,
               retryInterval: opts.refreshIntervalSeconds * 1000,
+              machine: 'DFSP_CLIENT_CERT',
+              state: 'creatingDfspCsr',
               service: async () => opts.vault.createCSR(),
             }),
           onDone: {
@@ -51,6 +64,7 @@ export namespace DfspClientCert {
         },
       },
       uploadingDfspCsr: {
+        entry: send('UPLOADING_DFSP_CSR'),
         invoke: {
           id: 'uploadCsr',
           src: (ctx) =>
@@ -58,6 +72,8 @@ export namespace DfspClientCert {
               id: 'uploadCsr',
               logger: opts.logger,
               retryInterval: opts.refreshIntervalSeconds * 1000,
+              machine: 'DFSP_CLIENT_CERT',
+              state: 'uploadingDfspCsr',
               service: () => opts.dfspCertificateModel.uploadCSR({ csr: ctx.dfspClientCert!.csr! }),
             }),
           onDone: {
@@ -72,6 +88,7 @@ export namespace DfspClientCert {
         },
       },
       gettingDfspClientCert: {
+        entry: send('FETCHING_DFSP_CLIENT_CERT'),
         invoke: {
           id: 'getDfspClientCert',
           src: (ctx) =>
@@ -79,6 +96,8 @@ export namespace DfspClientCert {
               id: 'getDfspClientCert',
               logger: opts.logger,
               retryInterval: opts.refreshIntervalSeconds * 1000,
+              machine: 'DFSP_CLIENT_CERT',
+              state: 'gettingDfspClientCert',
               service: () =>
                 opts.dfspCertificateModel.getClientCertificate({ inboundEnrollmentId: ctx.dfspClientCert!.id! }),
             }),
@@ -113,6 +132,7 @@ export namespace DfspClientCert {
         },
       },
       completed: {
+        entry: send('COMPLETING_DFSP_CLIENT_CERT'),
         always: {
           target: 'retry',
           actions: send('DFSP_CLIENT_CERT_CONFIGURED'),

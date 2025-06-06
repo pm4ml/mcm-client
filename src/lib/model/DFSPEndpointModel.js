@@ -139,6 +139,10 @@ class DFSPEndpointModel {
 
         return this._hubRequest.put(url, entry);
     }
+
+    async uploadDfspStatesStatus(states) {
+        return this._hubRequest.post(`/dfsps/${this._dfspId}/states`, states);
+    }
 }
 
 module.exports = DFSPEndpointModel;
