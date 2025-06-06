@@ -39,35 +39,7 @@ export namespace DfspClientCert {
     id: 'dfspClientCert',
     initial: 'creatingDfspCsr',
     on: {
-      CREATE_DFSP_CLIENT_CERT: {
-        actions: [
-          assign({
-            dfspClientCert: (ctx): any => ({
-              ...ctx.dfspClientCert,
-              id: undefined,
-              privateKey: undefined,
-              csr: undefined,
-              cert: undefined,
-            }),
-          }),
-          // TODO: Not sure how to clear the outbound tls as doing it like this will break the sdk scheme adapter
-          // send({
-          //   type: 'UPDATE_CONNECTOR_CONFIG',
-          //   config: {
-          //     outbound: {
-          //       tls: {
-          //         creds: {
-          //           cert: undefined,
-          //           key: undefined,
-          //         },
-          //       },
-          //     },
-          //   },
-          // }),
-        ],
-        target: '.creatingDfspCsr',
-        internal: false,
-      },
+      CREATE_DFSP_CLIENT_CERT: { target: '.creatingDfspCsr', internal: false },
     },
     states: {
       creatingDfspCsr: {
