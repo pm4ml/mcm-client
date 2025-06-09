@@ -62,6 +62,7 @@ type StateMachineType = StateMachine<Context, any, Event>;
 class ConnectionStateMachine {
   private static VERSION = 3;
   private started: boolean = false;
+  private reportStatesStatusTimeout: NodeJS.Timeout | null = null;
 
   private readonly hash: string;
   private service: any; // todo: define type
@@ -148,11 +149,33 @@ class ConnectionStateMachine {
     }
 
     this.started = true;
+    this.reportStatesStatus();
   }
 
   public stop() {
     this.started = true;
     this.service.stop();
+    if (this.reportStatesStatusTimeout) clearTimeout(this.reportStatesStatusTimeout);
+  }
+
+  getState(formatted = false) {
+    const states = this.service.state.context.progressMonitor;
+
+    return !formatted ? states : Object.entries(states).reduce((acc, [key, value]) => {
+      const { status, stateDescription, lastUpdated, error } = value as {
+        status: string;
+        stateDescription: string;
+        lastUpdated: string;
+        error: string;
+      };
+      acc[key] = {
+        status,
+        stateDescription,
+        lastUpdated: new Date(lastUpdated).toISOString(),
+        ...(error && { errorDescription: `${error}` }),
+      };
+      return acc;
+    }, {});
   }
 
   public async restart() {
@@ -245,6 +268,17 @@ class ConnectionStateMachine {
         },
       },
     );
+  }
+
+  private reportStatesStatus() {
+    const { dfspEndpointModel, logger, reportStatesStatusIntervalSeconds = 60 } = this.opts;
+    const states = this.getState(true);
+    dfspEndpointModel.uploadDfspStatesStatus(states)
+      .then((result) => { logger.debug('States status uploaded:', { result }); })
+      .catch((err) => { logger.warn('Failed to upload states status: ', err); })
+      .finally(() => {
+        this.reportStatesStatusTimeout = setTimeout(() => this.reportStatesStatus(), reportStatesStatusIntervalSeconds * 1000);
+      })
   }
 
   static createHash(machine: StateMachineType) {
