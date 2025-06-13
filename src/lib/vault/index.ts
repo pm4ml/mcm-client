@@ -7,15 +7,15 @@
  *  ORIGINAL AUTHOR:                                                      *
  *       Yevhen Kyriukha - yevhen.kyriukha@modusbox.com                   *
  **************************************************************************/
-import NodeVault from "node-vault";
-import { strict as assert } from "assert";
-import SDK from "@mojaloop/sdk-standard-components";
-import forge from "node-forge";
+import NodeVault from 'node-vault';
+import { strict as assert } from 'assert';
+import SDK from '@mojaloop/sdk-standard-components';
+import forge from 'node-forge';
 
 // TODO: Use hashi-vault-js package
 // TODO: find and link document containing rules on allowable paths
 enum VaultPaths {
-  STATE_MACHINE_STATE = "state-machine-state",
+  STATE_MACHINE_STATE = 'state-machine-state',
 }
 
 enum SubjectAltNameType {
@@ -87,7 +87,7 @@ export default class Vault {
 
   async connect() {
     const { auth, endpoint } = this.cfg;
-    this.logger.info("Connecting to Vault...", { endpoint });
+    this.logger.info('Connecting to Vault...', { endpoint });
 
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
 
@@ -105,7 +105,7 @@ export default class Vault {
         jwt: auth.k8s.token,
       });
     } else {
-      const errMessage = "Unsupported auth method";
+      const errMessage = 'Unsupported auth method';
       this.logger.warn(errMessage);
       throw new Error(errMessage);
     }
@@ -128,14 +128,14 @@ export default class Vault {
 
   disconnect() {
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
-    this.logger.info("disconnected from Vault");
+    this.logger.info('disconnected from Vault');
   }
 
   mountAll() {
     assert(this.client);
     return Promise.all([
-      this.client.mount({ type: "pki", prefix: `${this.cfg.mounts.pki}` }),
-      this.client.mount({ type: "kv", prefix: `${this.cfg.mounts.kv}` }),
+      this.client.mount({ type: 'pki', prefix: `${this.cfg.mounts.pki}` }),
+      this.client.mount({ type: 'kv', prefix: `${this.cfg.mounts.kv}` }),
     ]);
   }
 
@@ -198,7 +198,7 @@ export default class Vault {
       assert(this.client);
       await this.client.request({
         path: `/${this.cfg.mounts.pki}/root`,
-        method: "DELETE",
+        method: 'DELETE',
       });
     } catch (err) {
       this.logger.warn(`error in deleteCA: `, err);
@@ -214,7 +214,7 @@ export default class Vault {
     assert(this.client);
     const { data } = await this.client.request({
       path: `/${this.cfg.mounts.pki}/root/generate/exported`,
-      method: "POST",
+      method: 'POST',
       json: {
         common_name: subject.CN,
         ou: subject.OU,
@@ -237,7 +237,7 @@ export default class Vault {
     assert(this.client);
     return this.client.request({
       path: `/${this.cfg.mounts.pki}/ca/pem`,
-      method: "GET",
+      method: 'GET',
     });
   }
 
@@ -248,23 +248,23 @@ export default class Vault {
     if (csrParameters?.extensions?.subjectAltName) {
       const { dns, ips } = csrParameters.extensions.subjectAltName;
       if (dns) {
-        reqJson.alt_names = dns.join(",");
+        reqJson.alt_names = dns.join(',');
       }
       if (ips) {
-        reqJson.ip_sans = ips.join(",");
+        reqJson.ip_sans = ips.join(',');
       }
     }
     assert(this.client);
 
     const options = {
       path: `/${this.cfg.mounts.pki}/issue/${this.cfg.pkiServerRole}`,
-      method: "POST",
+      method: 'POST',
       json: reqJson,
     };
     this.logger.verbose(`sending createDFSPServerCert request...`, { options });
 
     const { data } = await this.client.request(options);
-    this.logger.verbose("sending createDFSPServerCert request is done");
+    this.logger.verbose('sending createDFSPServerCert request is done');
 
     return {
       intermediateChain: data.ca_chain,
@@ -282,14 +282,14 @@ export default class Vault {
 
     const options = {
       path: `/${this.cfg.mounts.pki}/sign/${this.cfg.pkiClientRole}`,
-      method: "POST",
+      method: 'POST',
       json: {
         common_name: this.cfg.commonName,
         // ttl: `${this._signExpiryHours}h`,
       },
     };
     this.logger.verbose(`sending signHubCSR request...`, { options });
-    options.json["csr"] = csr;
+    options.json['csr'] = csr;
 
     const { data } = await this.client.request(options);
     this.logger.verbose(`sending signHubCSR request is done`);
@@ -301,7 +301,7 @@ export default class Vault {
     assert(this.client);
     await this.client.request({
       path: `/${this.cfg.mounts.pki}/config/ca`,
-      method: "POST",
+      method: 'POST',
       json: {
         pem_bundle: `${privateKeyPem}\n${certChainPem}`,
       },
@@ -315,7 +315,7 @@ export default class Vault {
     assert(this.client);
     return this.client.request({
       path: `/${this.cfg.mounts.pki}/ca_chain`,
-      method: "GET",
+      method: 'GET',
     });
   }
 
@@ -343,7 +343,7 @@ export default class Vault {
       const { dns, ips } = csrParameters.extensions.subjectAltName;
       csr.setExtensions([
         {
-          name: "subjectAltName",
+          name: 'subjectAltName',
           altNames: [
             ...(dns?.map?.((value) => ({
               type: SubjectAltNameType.DNS,
@@ -379,13 +379,13 @@ export default class Vault {
     assert(this.client);
     try {
       const response = await this.client.request({
-        path: "/sys/health",
-        method: "GET",
+        path: '/sys/health',
+        method: 'GET',
       });
       return response;
     } catch (err: unknown) {
-      this.logger.warn("Vault health check failed: ", err);
-      return { status: "DOWN" };
+      this.logger.warn('Vault health check failed: ', err);
+      return { status: 'DOWN' };
     }
   }
 }

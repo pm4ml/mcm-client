@@ -8,11 +8,11 @@
  *       Yevhen Kyriukha <yevhen.kyriukha@modusbox.com>                   *
  **************************************************************************/
 
-import { createHash } from "node:crypto";
-import { createMachine, interpret, State, StateMachine } from "xstate";
-import { ActionObject } from "xstate/lib/types";
-import { inspect } from "@xstate/inspect/lib/server";
-import WebSocket from "ws";
+import { createHash } from 'node:crypto';
+import { createMachine, interpret, State, StateMachine } from 'xstate';
+import { ActionObject } from 'xstate/lib/types';
+import { inspect } from '@xstate/inspect/lib/server';
+import WebSocket from 'ws';
 
 import {
   DfspJWS,
@@ -26,9 +26,9 @@ import {
   EndpointConfig,
   ProgressMonitor,
   UploadPeerJWS,
-} from "./states";
+} from './states';
 
-import { MachineOpts } from "./states/MachineOpts";
+import { MachineOpts } from './states/MachineOpts';
 
 type Context = PeerJWS.Context &
   DfspJWS.Context &
@@ -82,7 +82,7 @@ class ConnectionStateMachine {
   }
 
   private handleTransition(state: State<Context, Event>) {
-    this.opts.logger.push({ state: state.value }).debug("Transition");
+    this.opts.logger.push({ state: state.value }).debug('Transition');
     this.context = state.context;
     this.updateActions(state.actions);
     this.setState(state);
@@ -97,24 +97,24 @@ class ConnectionStateMachine {
         actions: this.actions,
       })
       .catch((err) => {
-        this.opts.logger.warn("Failed to set state machine state", err);
+        this.opts.logger.warn('Failed to set state machine state', err);
       });
   }
 
   private updateActions(acts: Array<ActionType>) {
-    this.opts.logger.debug("updateActions...", { acts });
+    this.opts.logger.debug('updateActions...', { acts });
     acts.forEach((action) => {
-      if (action.type === "xstate.cancel") {
+      if (action.type === 'xstate.cancel') {
         delete this.actions[action.sendId];
       }
-      if (action.event?.type?.startsWith("xstate.after")) {
+      if (action.event?.type?.startsWith('xstate.after')) {
         this.actions[action.id] = action;
       }
-      if (action.activity?.type === "xstate.invoke") {
-        if (action.type === "xstate.stop") {
+      if (action.activity?.type === 'xstate.invoke') {
+        if (action.type === 'xstate.stop') {
           delete this.actions[action.activity.id];
         }
-        if (action.type === "xstate.start") {
+        if (action.type === 'xstate.start') {
           this.actions[action.activity.id] = action;
         }
       }
@@ -132,7 +132,7 @@ class ConnectionStateMachine {
       state?.version === ConnectionStateMachine.VERSION;
 
     if (isPrevious) {
-      this.opts.logger.info("Restoring state machine from previous state");
+      this.opts.logger.info('Restoring state machine from previous state');
       this.actions = state.actions;
       this.service.start({
         ...state.state,
@@ -140,8 +140,8 @@ class ConnectionStateMachine {
       });
     } else {
       const reason = state
-        ? "state machine changed"
-        : "no previous state found";
+        ? 'state machine changed'
+        : 'no previous state found';
       this.opts.logger.info(
         `Starting state machine from scratch because ${reason}`,
       );
@@ -153,7 +153,7 @@ class ConnectionStateMachine {
   }
 
   public stop() {
-    this.started = true;
+    this.started = false;
     this.service.stop();
     if (this.reportStatesStatusTimeout) clearTimeout(this.reportStatesStatusTimeout);
   }
@@ -179,24 +179,24 @@ class ConnectionStateMachine {
   }
 
   public async restart() {
-    this.opts.logger.info("Restarting state machine from scratch");
+    this.opts.logger.info('Restarting state machine from scratch');
 
     // Stop the current state machine
     this.stop();
-    this.opts.logger.info("State machine stopped");
+    this.opts.logger.info('State machine stopped');
 
     // Clear the vault state
     try {
       await this.opts.vault.deleteStateMachineState();
-      this.opts.logger.info("Vault state removed");
+      this.opts.logger.info('Vault state removed');
       const vaultState = await this.opts.vault.getStateMachineState();
       if (vaultState !== undefined) {
-        this.opts.logger.warn("Vault state not fully cleared");
+        this.opts.logger.warn('Vault state not fully cleared');
       }
     } catch (err) {
-      this.opts.logger.error("Failed to clear state machine state", err);
+      this.opts.logger.error('Failed to clear state machine state', err);
       throw new Error(
-        "Cannot restart state machine: failed to clear vault state",
+        'Cannot restart state machine: failed to clear vault state',
       );
     }
 
@@ -207,7 +207,7 @@ class ConnectionStateMachine {
     // Start the machine and force initial state
     const machine = this.createMachine(this.opts);
     if (this.hash !== ConnectionStateMachine.createHash(machine)) {
-      this.opts.logger.warn("Hashes does not match");
+      this.opts.logger.warn('Hashes does not match');
     }
     this.service = interpret(machine, { devTools: true });
     this.service.onTransition(this.handleTransition.bind(this));
@@ -234,9 +234,9 @@ class ConnectionStateMachine {
   private createMachine(opts: MachineOpts): StateMachineType {
     return createMachine<Context, Event>(
       {
-        id: "machine",
+        id: 'machine',
         context: {},
-        type: "parallel",
+        type: 'parallel',
         states: {
           fetchingHubCA: HubCA.createState<Context>(opts),
           creatingDFSPCA: DfspCA.createState<Context>(opts),
@@ -282,9 +282,9 @@ class ConnectionStateMachine {
   }
 
   static createHash(machine: StateMachineType) {
-    return createHash("sha256")
+    return createHash('sha256')
       .update(JSON.stringify(machine.config.states))
-      .digest("base64");
+      .digest('base64');
   }
 }
 
