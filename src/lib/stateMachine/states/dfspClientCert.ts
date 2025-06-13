@@ -133,10 +133,13 @@ export namespace DfspClientCert {
       },
       completed: {
         entry: send('COMPLETING_DFSP_CLIENT_CERT'),
-        always: {
-          target: 'retry',
-          actions: send('DFSP_CLIENT_CERT_CONFIGURED'),
-        },
+        always:  [
+          { target: 'retry' },
+          {
+            target: 'retry',
+            cond:'hasCert',
+            actions: send('DFSP_CLIENT_CERT_CONFIGURED'),}
+        ]
       },
       retry: {
         after: {
@@ -149,5 +152,6 @@ export namespace DfspClientCert {
   export const createGuards = <TContext extends Context>() => ({
     hasNewDfspClientCert: (ctx: TContext, event: AnyEventObject) =>
       event.data?.state === CertState.CERT_SIGNED && event.data.certificate !== ctx.dfspClientCert!.cert,
+    hasCert: (ctx: TContext) => !!ctx.dfspClientCert?.cert && !!ctx.dfspClientCert?.privateKey,
   });
 }
