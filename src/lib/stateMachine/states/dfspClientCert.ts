@@ -134,11 +134,12 @@ export namespace DfspClientCert {
       completed: {
         entry: send('COMPLETING_DFSP_CLIENT_CERT'),
         always:  [
-          { target: 'retry' },
           {
             target: 'retry',
             cond:'hasCert',
-            actions: send('DFSP_CLIENT_CERT_CONFIGURED'),}
+            actions: send('DFSP_CLIENT_CERT_CONFIGURED'),
+          },
+          { target: 'retry' },
         ]
       },
       retry: {
