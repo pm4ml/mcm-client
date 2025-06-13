@@ -115,10 +115,15 @@ export default class Vault {
       token: creds.auth.client_token,
     });
 
-    const tokenRefreshMs = Math.min((creds.auth.lease_duration - 10) * 1000, MAX_TIMEOUT);
+    const tokenRefreshMs = Math.min(
+      (creds.auth.lease_duration - 10) * 1000,
+      MAX_TIMEOUT,
+    );
     this.reconnectTimer = setTimeout(this.connect.bind(this), tokenRefreshMs);
 
-    this.logger.info(`Connected to Vault  [reconnect after: ${tokenRefreshMs} ms]`);
+    this.logger.info(
+      `Connected to Vault  [reconnect after: ${tokenRefreshMs} ms]`,
+    );
   }
 
   disconnect() {
@@ -178,6 +183,10 @@ export default class Vault {
 
   async getStateMachineState() {
     return this._getSecret(VaultPaths.STATE_MACHINE_STATE);
+  }
+
+  async deleteStateMachineState() {
+    return this._deleteSecret(VaultPaths.STATE_MACHINE_STATE);
   }
 
   /**
@@ -312,7 +321,10 @@ export default class Vault {
 
   certIsValid(certPem, date = Date.now()) {
     const cert = forge.pki.certificateFromPem(certPem);
-    return cert.validity.notBefore.getTime() > date && date < cert.validity.notAfter.getTime();
+    return (
+      cert.validity.notBefore.getTime() > date &&
+      date < cert.validity.notAfter.getTime()
+    );
   }
 
   createCSR(csrParameters?: CsrParams) {
@@ -320,7 +332,12 @@ export default class Vault {
     const csr = forge.pki.createCertificationRequest();
     csr.publicKey = keys.publicKey;
     if (csrParameters?.subject) {
-      csr.setSubject(Object.entries(csrParameters.subject).map(([shortName, value]) => ({ shortName, value })));
+      csr.setSubject(
+        Object.entries(csrParameters.subject).map(([shortName, value]) => ({
+          shortName,
+          value,
+        })),
+      );
     }
     if (csrParameters?.extensions?.subjectAltName) {
       const { dns, ips } = csrParameters.extensions.subjectAltName;
@@ -328,8 +345,14 @@ export default class Vault {
         {
           name: 'subjectAltName',
           altNames: [
-            ...(dns?.map?.((value) => ({ type: SubjectAltNameType.DNS, value })) || []),
-            ...(ips?.map?.((value) => ({ type: SubjectAltNameType.IP, value })) || []),
+            ...(dns?.map?.((value) => ({
+              type: SubjectAltNameType.DNS,
+              value,
+            })) || []),
+            ...(ips?.map?.((value) => ({
+              type: SubjectAltNameType.IP,
+              value,
+            })) || []),
           ],
         },
       ]);
@@ -366,4 +389,3 @@ export default class Vault {
     }
   }
 }
-

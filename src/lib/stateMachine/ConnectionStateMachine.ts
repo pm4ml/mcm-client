@@ -127,7 +127,9 @@ class ConnectionStateMachine {
 
   public async start() {
     const state = await this.opts.vault.getStateMachineState();
-    const isPrevious = state?.hash === this.hash && state?.version === ConnectionStateMachine.VERSION;
+    const isPrevious =
+      state?.hash === this.hash &&
+      state?.version === ConnectionStateMachine.VERSION;
 
     if (isPrevious) {
       this.opts.logger.info('Restoring state machine from previous state');
@@ -137,8 +139,12 @@ class ConnectionStateMachine {
         actions: Object.values(this.actions),
       });
     } else {
-      const reason = state ? 'state machine changed' : 'no previous state found';
-      this.opts.logger.info(`Starting state machine from scratch because ${reason}`);
+      const reason = state
+        ? 'state machine changed'
+        : 'no previous state found';
+      this.opts.logger.info(
+        `Starting state machine from scratch because ${reason}`,
+      );
       this.service.start();
     }
 
@@ -147,6 +153,7 @@ class ConnectionStateMachine {
   }
 
   public stop() {
+    this.started = false;
     this.service.stop();
     if (this.reportStatesStatusTimeout) clearTimeout(this.reportStatesStatusTimeout);
   }
@@ -171,6 +178,43 @@ class ConnectionStateMachine {
     }, {});
   }
 
+  public async restart() {
+    this.opts.logger.info('Restarting state machine from scratch');
+
+    // Stop the current state machine
+    this.stop();
+    this.opts.logger.info('State machine stopped');
+
+    // Clear the vault state
+    try {
+      await this.opts.vault.deleteStateMachineState();
+      this.opts.logger.info('Vault state removed');
+      const vaultState = await this.opts.vault.getStateMachineState();
+      if (vaultState !== undefined) {
+        this.opts.logger.warn('Vault state not fully cleared');
+      }
+    } catch (err) {
+      this.opts.logger.error('Failed to clear state machine state', err);
+      throw new Error(
+        'Cannot restart state machine: failed to clear vault state',
+      );
+    }
+
+    // Reset internal state
+    this.actions = {};
+    this.context = undefined;
+
+    // Start the machine and force initial state
+    const machine = this.createMachine(this.opts);
+    if (this.hash !== ConnectionStateMachine.createHash(machine)) {
+      this.opts.logger.warn('Hashes does not match');
+    }
+    this.service = interpret(machine, { devTools: true });
+    this.service.onTransition(this.handleTransition.bind(this));
+
+    await this.start();
+  }
+
   public getContext() {
     return this.context;
   }
@@ -182,7 +226,7 @@ class ConnectionStateMachine {
         server: new WebSocket.Server({ port }),
       });
       this.opts.logger.verbose(
-        `StateMachine introspection URL: https://stately.ai/viz?inspect&server=ws://localhost:${port}`
+        `StateMachine introspection URL: https://stately.ai/viz?inspect&server=ws://localhost:${port}`,
       );
     }
   }
@@ -222,7 +266,7 @@ class ConnectionStateMachine {
         actions: {
           // ...ConnectorConfig.createActions<Context>(),
         },
-      }
+      },
     );
   }
 
@@ -238,7 +282,9 @@ class ConnectionStateMachine {
   }
 
   static createHash(machine: StateMachineType) {
-    return createHash('sha256').update(JSON.stringify(machine.config.states)).digest('base64');
+    return createHash('sha256')
+      .update(JSON.stringify(machine.config.states))
+      .digest('base64');
   }
 }
 
