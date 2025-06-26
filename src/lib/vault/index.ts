@@ -112,8 +112,6 @@ export default class Vault {
     const { auth, endpoint } = this.cfg;
     this.logger.info('Connecting to Vault...', { endpoint });
 
-    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
-
     let creds;
 
     const vault = NodeVault({ endpoint });
@@ -137,6 +135,9 @@ export default class Vault {
       endpoint,
       token: creds.auth.client_token,
     });
+
+    // Only clear the timer if vault has been connected successfully
+    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
 
     const tokenRefreshMs = Math.min((creds.auth.lease_duration - 10) * 1000, MAX_TIMEOUT);
     this.reconnectTimer = setTimeout(this.connect.bind(this), tokenRefreshMs);
