@@ -85,26 +85,22 @@ export default class Vault {
     this.logger = opts.logger;
   }
 
+  private _isTokenError(e: any): boolean {
+    return e?.response?.statusCode === 403 &&
+      (e?.response?.body?.errors?.some?.((msg: string) =>
+        msg.toLowerCase().includes('token') && msg.toLowerCase().includes('expired')
+      ) ||
+      e?.response?.body?.errors?.some?.((msg: string) =>
+        msg.toLowerCase().includes('permission denied')
+      ));
+  }
+
   private async _withTokenRefresh<T>(fn: () => Promise<T>, retry = true): Promise<T> {
     try {
       return await fn();
     } catch (e: any) {
       // Vault returns 403 for expired/invalid tokens
-      const isTokenError =
-        e?.response?.statusCode === 403 &&
-        (e?.response?.body?.errors?.some?.((msg: string) =>
-          msg.toLowerCase().includes('token') && msg.toLowerCase().includes('expired')
-        ) ||
-        e?.response?.body?.errors?.some?.((msg: string) =>
-          msg.toLowerCase().includes('permission denied')
-        ));
-
-      if (isTokenError && retry) {
-        this.logger.warn('Vault token expired or invalid, reconnecting...');
-        await this.connect();
-        return this._withTokenRefresh(fn, false); // Only retry once
-      }
-      throw e;
+      const isTokenError = this._isTokenError(e);
     }
   }
 
