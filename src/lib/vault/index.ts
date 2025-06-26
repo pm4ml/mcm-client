@@ -214,6 +214,7 @@ export default class Vault {
         });
       } catch (err) {
         this.logger.warn(`error in deleteCA: `, err);
+        throw err;
       }
     });
   }
