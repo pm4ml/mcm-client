@@ -99,6 +99,8 @@ export default class Vault {
     try {
       return await fn();
     } catch (e: any) {
+      this.logger.error('Error in _withTokenRefresh:', e);
+
       // Vault returns 403 for expired/invalid tokens
       const isTokenError = this._isTokenError(e);
 
