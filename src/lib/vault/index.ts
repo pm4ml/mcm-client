@@ -101,6 +101,13 @@ export default class Vault {
     } catch (e: any) {
       // Vault returns 403 for expired/invalid tokens
       const isTokenError = this._isTokenError(e);
+
+      if (isTokenError && retry) {
+        this.logger.warn('Vault token expired or invalid, reconnecting...');
+        await this.connect();
+        return this._withTokenRefresh(fn, false); // Only retry once
+      }
+      throw e;
     }
   }
 
