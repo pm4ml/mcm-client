@@ -85,11 +85,37 @@ export default class Vault {
     this.logger = opts.logger;
   }
 
+  private _isTokenError(e: any): boolean {
+    return e?.response?.statusCode === 403 &&
+      (e?.response?.body?.errors?.some?.((msg: string) =>
+        msg.toLowerCase().includes('token') && msg.toLowerCase().includes('expired')
+      ) ||
+      e?.response?.body?.errors?.some?.((msg: string) =>
+        msg.toLowerCase().includes('permission denied')
+      ));
+  }
+
+  private async _withTokenRefresh<T>(fn: () => Promise<T>, retry = true): Promise<T> {
+    try {
+      return await fn();
+    } catch (e: any) {
+      this.logger.warn('Error in _withTokenRefresh:', e);
+
+      // Vault returns 403 for expired/invalid tokens
+      const isTokenError = this._isTokenError(e);
+
+      if (isTokenError && retry) {
+        this.logger.warn('Vault token expired or invalid, reconnecting...');
+        await this.connect();
+        return this._withTokenRefresh(fn, false); // Only retry once
+      }
+      throw e;
+    }
+  }
+
   async connect() {
     const { auth, endpoint } = this.cfg;
     this.logger.info('Connecting to Vault...', { endpoint });
-
-    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
 
     let creds;
 
@@ -114,6 +140,9 @@ export default class Vault {
       endpoint,
       token: creds.auth.client_token,
     });
+
+    // Only clear the timer if vault has been connected successfully
+    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
 
     const tokenRefreshMs = Math.min((creds.auth.lease_duration - 10) * 1000, MAX_TIMEOUT);
     this.reconnectTimer = setTimeout(this.connect.bind(this), tokenRefreshMs);
@@ -173,11 +202,11 @@ export default class Vault {
   }
 
   async setStateMachineState(value: any) {
-    return this._setSecret(VaultPaths.STATE_MACHINE_STATE, value);
+    return this._withTokenRefresh(() => this._setSecret(VaultPaths.STATE_MACHINE_STATE, value));
   }
 
   async getStateMachineState() {
-    return this._getSecret(VaultPaths.STATE_MACHINE_STATE);
+    return this._withTokenRefresh(() => this._getSecret(VaultPaths.STATE_MACHINE_STATE));
   }
 
   /**
@@ -185,128 +214,143 @@ export default class Vault {
    * @returns {Promise<void>}
    */
   async deleteCA() {
-    try {
-      assert(this.client);
-      await this.client.request({
-        path: `/${this.cfg.mounts.pki}/root`,
-        method: 'DELETE',
-      });
-    } catch (err) {
-      this.logger.warn(`error in deleteCA: `, err);
-    }
+    return this._withTokenRefresh(async () => {
+      try {
+        assert(this.client);
+        await this.client.request({
+          path: `/${this.cfg.mounts.pki}/root`,
+          method: 'DELETE',
+        });
+      } catch (err) {
+        this.logger.warn(`error in deleteCA: `, err);
+        throw err;
+      }
+    });
   }
 
   /**
    * Create root CA
    */
   async createCA(subject: Subject) {
-    await this.deleteCA();
+    return this._withTokenRefresh(async () => {
+      await this.deleteCA();
 
-    assert(this.client);
-    const { data } = await this.client.request({
-      path: `/${this.cfg.mounts.pki}/root/generate/exported`,
-      method: 'POST',
-      json: {
-        common_name: subject.CN,
-        ou: subject.OU,
-        organization: subject.O,
-        locality: subject.L,
-        country: subject.C,
-        province: subject.ST,
-        key_type: this.cfg.keyAlgorithm,
-        key_bits: this.cfg.keyLength,
-      },
+      assert(this.client);
+      const { data } = await this.client.request({
+        path: `/${this.cfg.mounts.pki}/root/generate/exported`,
+        method: 'POST',
+        json: {
+          common_name: subject.CN,
+          ou: subject.OU,
+          organization: subject.O,
+          locality: subject.L,
+          country: subject.C,
+          province: subject.ST,
+          key_type: this.cfg.keyAlgorithm,
+          key_bits: this.cfg.keyLength,
+        },
+      });
+
+      return {
+        cert: data.certificate,
+        key: data.private_key,
+      };
     });
-
-    return {
-      cert: data.certificate,
-      key: data.private_key,
-    };
   }
 
   async getCA() {
-    assert(this.client);
-    return this.client.request({
-      path: `/${this.cfg.mounts.pki}/ca/pem`,
-      method: 'GET',
+    return this._withTokenRefresh(() => {
+      assert(this.client);
+      return this.client.request({
+        path: `/${this.cfg.mounts.pki}/ca/pem`,
+        method: 'GET',
+      });
     });
   }
 
   async createDFSPServerCert(csrParameters: CsrParams) {
-    const reqJson: Record<string, any> = {
-      common_name: csrParameters.subject.CN,
-    };
-    if (csrParameters?.extensions?.subjectAltName) {
-      const { dns, ips } = csrParameters.extensions.subjectAltName;
-      if (dns) {
-        reqJson.alt_names = dns.join(',');
+    return this._withTokenRefresh(async () => {
+      const reqJson: Record<string, any> = {
+        common_name: csrParameters.subject.CN,
+      };
+      if (csrParameters?.extensions?.subjectAltName) {
+        const { dns, ips } = csrParameters.extensions.subjectAltName;
+        if (dns) {
+          reqJson.alt_names = dns.join(',');
+        }
+        if (ips) {
+          reqJson.ip_sans = ips.join(',');
+        }
       }
-      if (ips) {
-        reqJson.ip_sans = ips.join(',');
-      }
-    }
-    assert(this.client);
+      assert(this.client);
 
-    const options = {
-      path: `/${this.cfg.mounts.pki}/issue/${this.cfg.pkiServerRole}`,
-      method: 'POST',
-      json: reqJson,
-    };
-    this.logger.verbose(`sending createDFSPServerCert request...`, { options });
+      const options = {
+        path: `/${this.cfg.mounts.pki}/issue/${this.cfg.pkiServerRole}`,
+        method: 'POST',
+        json: reqJson,
+      };
+      this.logger.verbose(`sending createDFSPServerCert request...`, { options });
 
-    const { data } = await this.client.request(options);
-    this.logger.verbose('sending createDFSPServerCert request is done');
+      const { data } = await this.client.request(options);
+      this.logger.verbose('sending createDFSPServerCert request is done');
 
-    return {
-      intermediateChain: data.ca_chain,
-      rootCertificate: data.issuing_ca,
-      serverCertificate: data.certificate,
-      privateKey: data.private_key,
-    };
+      return {
+        intermediateChain: data.ca_chain,
+        rootCertificate: data.issuing_ca,
+        serverCertificate: data.certificate,
+        privateKey: data.private_key,
+      };
+    });
   }
 
   /**
    * Sign Hub CSR
    */
   async signHubCSR(csr: string) {
-    assert(this.client);
+    return this._withTokenRefresh(async () => {
+      assert(this.client);
 
-    const options = {
-      path: `/${this.cfg.mounts.pki}/sign/${this.cfg.pkiClientRole}`,
-      method: 'POST',
-      json: {
-        common_name: this.cfg.commonName,
-        // ttl: `${this._signExpiryHours}h`,
-      },
-    };
-    this.logger.verbose(`sending signHubCSR request...`, { options });
-    options.json['csr'] = csr;
+      const options = {
+        path: `/${this.cfg.mounts.pki}/sign/${this.cfg.pkiClientRole}`,
+        method: 'POST',
+        json: {
+          common_name: this.cfg.commonName,
+          // ttl: `${this._signExpiryHours}h`,
+        },
+      };
+      this.logger.verbose(`sending signHubCSR request...`, { options });
+      options.json['csr'] = csr;
 
-    const { data } = await this.client.request(options);
-    this.logger.verbose(`sending signHubCSR request is done`);
+      const { data } = await this.client.request(options);
+      this.logger.verbose(`sending signHubCSR request is done`);
 
-    return data;
+      return data;
+    });
   }
 
   async setDFSPCaCertChain(certChainPem: string, privateKeyPem: string) {
-    assert(this.client);
-    await this.client.request({
-      path: `/${this.cfg.mounts.pki}/config/ca`,
-      method: 'POST',
-      json: {
-        pem_bundle: `${privateKeyPem}\n${certChainPem}`,
-      },
+    return this._withTokenRefresh(async () => {
+      assert(this.client);
+      await this.client.request({
+        path: `/${this.cfg.mounts.pki}/config/ca`,
+        method: 'POST',
+        json: {
+          pem_bundle: `${privateKeyPem}\n${certChainPem}`,
+        },
+      });
+      // Secret object documentation:
+      // https://github.com/modusintegration/mojaloop-k3s-bootstrap/blob/e3578fc57a024a41023c61cd365f382027b922bd/docs/README-vault.md#vault-crd-secrets-integration
+      // https://vault.koudingspawn.de/supported-secret-types/secret-type-cert
     });
-    // Secret object documentation:
-    // https://github.com/modusintegration/mojaloop-k3s-bootstrap/blob/e3578fc57a024a41023c61cd365f382027b922bd/docs/README-vault.md#vault-crd-secrets-integration
-    // https://vault.koudingspawn.de/supported-secret-types/secret-type-cert
   }
 
   async getDFSPCaCertChain() {
-    assert(this.client);
-    return this.client.request({
-      path: `/${this.cfg.mounts.pki}/ca_chain`,
-      method: 'GET',
+    return this._withTokenRefresh(() => {
+      assert(this.client);
+      return this.client.request({
+        path: `/${this.cfg.mounts.pki}/ca_chain`,
+        method: 'GET',
+      });
     });
   }
 
