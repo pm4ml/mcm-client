@@ -34,7 +34,7 @@ const ControlServerEventEmitter = getInternalEventEmitter();
  *************************************************************************/
 
 export interface ServerOpts {
-  logger: Logger.Logger;
+  logger: Logger.SdkLogger;
   port: number;
   onRequestConfig: (client: unknown) => void;
   onRequestPeerJWS: (client: unknown) => void;
@@ -42,7 +42,7 @@ export interface ServerOpts {
 }
 
 class Server extends ws.Server {
-  private _logger: Logger.Logger;
+  private _logger: Logger.SdkLogger;
   private _clientData: Map<any, any>;
   private _heartbeatInterval: NodeJS.Timeout | null = null;
   private readonly onRequestConfig: (client: unknown) => void;
@@ -59,7 +59,7 @@ class Server extends ws.Server {
     this.onUploadPeerJWS = opts.onUploadPeerJWS;
 
     this.on('error', (err) => {
-      this._logger.push({ err }).log('Unhandled websocket error occurred. Shutting down.');
+      this._logger.error('Unhandled websocket error occurred. Shutting down.', err);
       process.exit(1);
     });
 
@@ -68,7 +68,7 @@ class Server extends ws.Server {
         url: req.url,
         ip: getWsIp(req),
         remoteAddress: req.socket.remoteAddress,
-      });
+      } as any);
       logger.log('Websocket connection received');
       this._clientData.set(socket, { ip: req.connection.remoteAddress, logger, isAlive: true });
 
@@ -80,13 +80,13 @@ class Server extends ws.Server {
       });
 
       socket.on('close', (code, reason) => {
-        logger.push({ code, reason }).log('Websocket connection closed');
+        logger.warn('Websocket connection closed', { code, reason });
         this._clientData.delete(socket);
       });
 
       socket.on('message', this._handle(socket, logger));
     });
-    this._logger.push(this.address()).log('running on');
+    this._logger.info(`ws Control Server is running...`, { addressInfo: this.address() });
     this._startHeartbeat();
   }
 
@@ -122,10 +122,10 @@ class Server extends ws.Server {
       client.terminate();
     }
     await closing;
-    this._logger.log('Control server shutdown complete');
+    this._logger.info('Control server shutdown complete');
   }
 
-  _handle(client, logger: Logger.Logger) {
+  _handle(client, logger: Logger.SdkLogger) {
     return (data: any) => {
       // TODO: json-schema validation of received message- should be pretty straight-forward
       // and will allow better documentation of the API
@@ -133,7 +133,7 @@ class Server extends ws.Server {
       try {
         msg = deserialise(data);
       } catch (err) {
-        logger.push({ data }).log("Couldn't parse received message");
+        logger.push({ data }).warn("Couldn't parse received message");
         client.send(build.ERROR.NOTIFY.JSON_PARSE_ERROR());
       }
       logger.push({ msg }).log('Handling received message');
@@ -168,7 +168,7 @@ class Server extends ws.Server {
           }
           break;
         case MESSAGE.ERROR:
-          logger.push({ msg }).log('Received error message');
+          logger.push({ msg }).warn('Received error message');
           break;
         default:
           client.send(build.ERROR.NOTIFY.UNSUPPORTED_MESSAGE(msg.id));
@@ -217,6 +217,42 @@ class Server extends ws.Server {
         client.send(msg);
       }
     });
+  }
+
+  /**
+   * Outputs details about all connected clients.
+   */
+  getClientDetails() {
+    const clientDetails = Array.from(this._clientData.entries()).map(([client, data]) => ({
+      ip: data.ip,
+      isAlive: data.isAlive,
+      readyState: client.readyState,
+    }));
+    this._logger.verbose('Connected client details: ', { clientDetails });
+    return clientDetails;
+  }
+
+  /**
+   * Health check function to verify the server is running and clients are responsive.
+   */
+  healthCheck() {
+    const clientDetails = this.getClientDetails();
+    const unhealthyClients = clientDetails.filter((client) => !client.isAlive);
+
+    const status = {
+      server: {
+        running: true,
+        port: this.options.port,
+      },
+      clients: {
+        total: clientDetails.length,
+        healthy: clientDetails.length - unhealthyClients.length,
+        unhealthy: unhealthyClients.length,
+      },
+    };
+
+    this._logger.debug('Health check status:', { status });
+    return status;
   }
 }
 

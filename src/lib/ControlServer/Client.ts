@@ -1,7 +1,7 @@
 import ws from 'ws';
 import SDKStandardComponents from '@mojaloop/sdk-standard-components';
 
-import Logger = SDKStandardComponents.Logger.Logger;
+import Logger = SDKStandardComponents.Logger.SdkLogger;
 
 import { build, serialise, deserialise } from './shared';
 

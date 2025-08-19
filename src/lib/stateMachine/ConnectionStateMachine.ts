@@ -62,6 +62,7 @@ type StateMachineType = StateMachine<Context, any, Event>;
 class ConnectionStateMachine {
   private static VERSION = 3;
   private started: boolean = false;
+  private reportStatesStatusTimeout: NodeJS.Timeout | null = null;
 
   private readonly hash: string;
   private service: any; // todo: define type
@@ -81,7 +82,7 @@ class ConnectionStateMachine {
   }
 
   private handleTransition(state: State<Context, Event>) {
-    this.opts.logger.push({ state: state.value }).log('Transition');
+    this.opts.logger.push({ state: state.value }).debug('Transition');
     this.context = state.context;
     this.updateActions(state.actions);
     this.setState(state);
@@ -96,11 +97,12 @@ class ConnectionStateMachine {
         actions: this.actions,
       })
       .catch((err) => {
-        this.opts.logger.push({ err }).log('Failed to set state machine state');
+        this.opts.logger.warn('Failed to set state machine state', err);
       });
   }
 
   private updateActions(acts: Array<ActionType>) {
+    this.opts.logger.debug('updateActions...', { acts });
     acts.forEach((action) => {
       if (action.type === 'xstate.cancel') {
         delete this.actions[action.sendId];
@@ -128,7 +130,7 @@ class ConnectionStateMachine {
     const isPrevious = state?.hash === this.hash && state?.version === ConnectionStateMachine.VERSION;
 
     if (isPrevious) {
-      this.opts.logger.log('Restoring state machine from previous state');
+      this.opts.logger.info('Restoring state machine from previous state');
       this.actions = state.actions;
       this.service.start({
         ...state.state,
@@ -136,15 +138,37 @@ class ConnectionStateMachine {
       });
     } else {
       const reason = state ? 'state machine changed' : 'no previous state found';
-      this.opts.logger.log(`Starting state machine from scratch because ${reason}`);
+      this.opts.logger.info(`Starting state machine from scratch because ${reason}`);
       this.service.start();
     }
 
     this.started = true;
+    this.reportStatesStatus();
   }
 
   public stop() {
     this.service.stop();
+    if (this.reportStatesStatusTimeout) clearTimeout(this.reportStatesStatusTimeout);
+  }
+
+  getState(formatted = false) {
+    const states = this.service.state.context.progressMonitor;
+
+    return !formatted ? states : Object.entries(states).reduce((acc, [key, value]) => {
+      const { status, stateDescription, lastUpdated, error } = value as {
+        status: string;
+        stateDescription: string;
+        lastUpdated: string;
+        error: string;
+      };
+      acc[key] = {
+        status,
+        stateDescription,
+        lastUpdated: new Date(lastUpdated).toISOString(),
+        ...(error && { errorDescription: `${error}` }),
+      };
+      return acc;
+    }, {});
   }
 
   public getContext() {
@@ -157,7 +181,7 @@ class ConnectionStateMachine {
       inspect({
         server: new WebSocket.Server({ port }),
       });
-      this.opts.logger.log(
+      this.opts.logger.verbose(
         `StateMachine introspection URL: https://stately.ai/viz?inspect&server=ws://localhost:${port}`
       );
     }
@@ -200,6 +224,17 @@ class ConnectionStateMachine {
         },
       }
     );
+  }
+
+  private reportStatesStatus() {
+    const { dfspEndpointModel, logger, reportStatesStatusIntervalSeconds = 60 } = this.opts;
+    const states = this.getState(true);
+    dfspEndpointModel.uploadDfspStatesStatus(states)
+      .then((result) => { logger.debug('States status uploaded:', { result }); })
+      .catch((err) => { logger.warn('Failed to upload states status: ', err); })
+      .finally(() => {
+        this.reportStatesStatusTimeout = setTimeout(() => this.reportStatesStatus(), reportStatesStatusIntervalSeconds * 1000);
+      })
   }
 
   static createHash(machine: StateMachineType) {

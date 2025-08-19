@@ -26,22 +26,20 @@ class ConnectorModel {
     async reconfigureInboundSdk(csrPrivateKey, inServerCert, dfspCA) {
         const logger = this._logger;
 
-        logger.log(`About to reconfigure sdk through websocket ${this._wsUrl} and port ${this._wsPort} `);
+        logger.info(`About to reconfigure sdk through websocket ${this._wsUrl} and port ${this._wsPort} `);
 
         const client = await ControlServer.Client.Create({
             address: this._wsUrl,
             port: this._wsPort,
             logger,
         });
-
-        logger.log('Client for websocket created :: ', client);
+        logger.verbose('client for websocket created');
 
         const clientSendResponse = await client.send(ControlServer.build.CONFIGURATION.READ());
-        logger.log('client send returned :: ', clientSendResponse);
+        logger.debug('client send returned :: ', clientSendResponse);
 
         const responseRead = await client.receive();
-
-        logger.log('client receive returned :: ', responseRead);
+        logger.debug('client receive returned :: ', responseRead);
 
         const appConfig = responseRead.data;
 

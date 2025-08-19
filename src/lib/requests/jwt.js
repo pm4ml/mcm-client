@@ -39,6 +39,7 @@ class JWTSingleton {
         const postData = querystring.stringify(payload);
 
         this.token = await this.post(route, postData, headers);
+        this._logger.info('login is done');
     }
 
     getToken() {
@@ -53,13 +54,13 @@ class JWTSingleton {
                 headers,
                 body,
             };
-            this._logger.push({ reqOpts }).log('Executing Login');
+            this._logger.push({ reqOpts }).verbose('Executing Login...');
 
             const { statusCode, data } = await request({ ...reqOpts, agent: this.agent });
 
             if (statusCode !== 200) {
                 const errMessage = ERROR_MESSAGES.loginErrorInvalidStatusCode;
-                this._logger.push({ statusCode, data }).log(errMessage);
+                this._logger.push({ statusCode, data }).warn(errMessage);
                 throw new Error(errMessage);
             }
             if (!data?.access_token) {
@@ -68,7 +69,7 @@ class JWTSingleton {
 
             return data.access_token;
         } catch (error) {
-            this._logger.push({ error }).log('Error Login');
+            this._logger.error('Error Login: ', error);
             throw error;
         }
     }

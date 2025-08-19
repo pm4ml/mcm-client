@@ -23,14 +23,14 @@ export const createMachineOpts = () => {
   const vaultObj = new Vault({
     ...config.vault,
     commonName: config.mojaloopConnectorFQDN,
-    logger: new SDKStandardComponents.Logger.Logger(),
+    logger: new SDKStandardComponents.Logger.SdkLogger(),
   });
   const vault = jest.mocked(vaultObj);
 
   const modelOpts = {
     dfspId: config.dfspId,
     hubEndpoint: config.mcmServerEndpoint,
-    logger: new SDKStandardComponents.Logger.Logger(),
+    logger: new SDKStandardComponents.Logger.SdkLogger(),
   };
 
   const ctx = {
@@ -47,7 +47,7 @@ export const createMachineOpts = () => {
     config: cfg,
     port: config.stateMachineDebugPort,
     ...ctx,
-    logger: new SDKStandardComponents.Logger.Logger(),
+    logger: new SDKStandardComponents.Logger.SdkLogger(),
     vault,
     ControlServer: jest.mocked(ControlServer),
     certManager: undefined,

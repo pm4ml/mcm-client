@@ -16,9 +16,10 @@ import * as ControlServer from '@app/lib/ControlServer';
 import Vault from '../../vault';
 
 export interface MachineOpts {
-  logger: SDK.Logger.Logger;
+  logger: SDK.Logger.SdkLogger;
   vault: Vault;
   refreshIntervalSeconds: number;
+  reportStatesStatusIntervalSeconds?: number;
   dfspCertificateModel: DFSPCertificateModel;
   dfspEndpointModel: DFSPEndpointModel;
   hubCertificateModel: HubCertificateModel;
