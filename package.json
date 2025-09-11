@@ -1,6 +1,6 @@
 {
   "name": "@pm4ml/mcm-client",
-  "version": "3.6.5-snapshot.4",
+  "version": "3.7.1",
   "description": "Client service for Connection Manager API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -33,7 +33,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@mojaloop/sdk-standard-components": "19.14.0",
+    "@mojaloop/sdk-standard-components": "19.16.5",
     "@xstate/inspect": "0.7.0",
     "ajv": "^8.17.1",
     "async-retry": "^1.3.3",
