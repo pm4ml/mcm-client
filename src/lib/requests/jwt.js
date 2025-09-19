@@ -12,9 +12,10 @@ class JWTSingleton {
             return JWTSingleton.instance;
         }
 
+        this._logger = opts.logger;
+
         this._auth = opts.auth;
         if (opts.auth.enabled) {
-            this._logger = opts.logger;
             this._hubIamProviderUrl = opts.hubIamProviderUrl;
             this._oidcTokenRoute = opts.oidcTokenRoute || OIDC_TOKEN_ROUTE;
             this._oidcGrantType = opts.oidcGrantType || OIDC_GRANT_TYPE;
