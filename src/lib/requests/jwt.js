@@ -86,6 +86,16 @@ class JWTSingleton {
         return Date.now() >= (this._tokenExpiresAt - (bufferSeconds * 1000));
     }
 
+    getTokenExpiryInfo() {
+        return {
+            isExpired: this.isTokenExpired(),
+            expiresAt: this._tokenExpiresAt || null,
+            lifeTime: this._tokenLifeTime || undefined,
+            refreshToken: this._refreshToken || null,
+            hasRefreshToken: !!this._refreshToken,
+        };
+    }
+
     async post(route, body, headers) {
         try {
             const reqOpts = {

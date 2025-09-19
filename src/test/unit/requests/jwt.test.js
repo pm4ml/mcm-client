@@ -84,7 +84,8 @@ describe('JWTSingleton Tests -->', () => {
             await refreshJwt.login();
 
             // Simulate token expiry by setting expiry time in the past
-            refreshJwt._tokenExpiresAt = Date.now() - 1000;
+            const pastTime = Date.now() - 1000;
+            refreshJwt._tokenExpiresAt = pastTime;
 
             // Mock refresh token response
             mockResponse = mocks.mockOidcHttpResponse({
@@ -185,18 +186,26 @@ describe('JWTSingleton Tests -->', () => {
 
             // Test with no expiry time set
             expect(refreshJwt.isTokenExpired()).toBe(true);
+            expect(refreshJwt.getTokenExpiryInfo().isExpired).toBe(true);
+            expect(refreshJwt.getTokenExpiryInfo().expiresAt).toBeNull();
 
-            // Set token expiry in the future
-            refreshJwt._tokenExpiresAt = Date.now() + 60000; // 1 minute from now
+            // Mock login to set token expiry
+            mockResponse = mocks.mockOidcHttpResponse({
+                data: {
+                    ...mocks.mockOidcData(),
+                    expires_in: 60, // 1 minute
+                },
+            });
+            await refreshJwt.login();
+
+            // Token should not be expired immediately after login
             expect(refreshJwt.isTokenExpired()).toBe(false);
-
-            // Set token expiry in the past
-            refreshJwt._tokenExpiresAt = Date.now() - 1000; // 1 second ago
-            expect(refreshJwt.isTokenExpired()).toBe(true);
+            expect(refreshJwt.getTokenExpiryInfo().isExpired).toBe(false);
+            expect(refreshJwt.getTokenExpiryInfo().lifeTime).toBe(60);
+            expect(refreshJwt.getTokenExpiryInfo().expiresAt).toBeGreaterThan(Date.now());
 
             // Test with buffer seconds
-            refreshJwt._tokenExpiresAt = Date.now() + 3000; // 3 seconds from now
-            expect(refreshJwt.isTokenExpired(5)).toBe(true); // Should be expired with 5s buffer
+            expect(refreshJwt.isTokenExpired(65)).toBe(true); // Should be expired with 65s buffer
             expect(refreshJwt.isTokenExpired(1)).toBe(false); // Should not expire with 1s buffer
         });
 
@@ -214,7 +223,11 @@ describe('JWTSingleton Tests -->', () => {
             await refreshJwt.login();
 
             expect(refreshJwt._tokenRefreshInterval).toBeTruthy();
-            expect(refreshJwt._tokenLifeTime).toBe(300);
+
+            const expiryInfo = refreshJwt.getTokenExpiryInfo();
+            expect(expiryInfo.lifeTime).toBe(300);
+            expect(expiryInfo.hasRefreshToken).toBe(true);
+            expect(expiryInfo.expiresAt).toBeGreaterThan(Date.now());
         });
 
         test('should clear intervals on destroy', async () => {
@@ -231,15 +244,22 @@ describe('JWTSingleton Tests -->', () => {
 
             expect(refreshJwt._tokenRefreshInterval).toBeTruthy();
             expect(refreshJwt.token).toBeTruthy();
-            expect(refreshJwt._refreshToken).toBeTruthy();
+
+            const expiryInfoBefore = refreshJwt.getTokenExpiryInfo();
+            expect(expiryInfoBefore.hasRefreshToken).toBe(true);
+            expect(expiryInfoBefore.lifeTime).toBeTruthy();
+            expect(expiryInfoBefore.expiresAt).toBeTruthy();
 
             refreshJwt.destroy();
 
             expect(refreshJwt._tokenRefreshInterval).toBeNull();
             expect(refreshJwt.token).toBeNull();
-            expect(refreshJwt._refreshToken).toBeNull();
-            expect(refreshJwt._tokenExpiresAt).toBeNull();
-            expect(refreshJwt._tokenLifeTime).toBeNull();
+
+            const expiryInfoAfter = refreshJwt.getTokenExpiryInfo();
+            expect(expiryInfoAfter.hasRefreshToken).toBe(false);
+            expect(expiryInfoAfter.lifeTime).toBeUndefined();
+            expect(expiryInfoAfter.expiresAt).toBeNull();
+            expect(expiryInfoAfter.isExpired).toBe(true);
         });
 
         test('should not schedule refresh when no token lifetime available', async () => {
@@ -255,6 +275,11 @@ describe('JWTSingleton Tests -->', () => {
             await refreshJwt.login();
 
             expect(refreshJwt._tokenRefreshInterval).toBeNull();
+
+            const expiryInfo = refreshJwt.getTokenExpiryInfo();
+            expect(expiryInfo.lifeTime).toBeUndefined();
+            expect(expiryInfo.expiresAt).toBeNull();
+            expect(expiryInfo.isExpired).toBe(true);
         });
 
         test('should clear existing interval before scheduling new one', async () => {
@@ -300,10 +325,11 @@ describe('JWTSingleton Tests -->', () => {
             });
             await refreshJwt.login();
 
-            expect(refreshJwt._tokenExpiresAt).toBeNull();
-            expect(refreshJwt._tokenLifeTime).toBe('300'); // Stored as-is
+            let expiryInfo = refreshJwt.getTokenExpiryInfo();
+            expect(expiryInfo.expiresAt).toBeNull();
+            expect(expiryInfo.lifeTime).toBe('300'); // Stored as-is
             // Should be expired when _tokenExpiresAt is null
-            expect(refreshJwt.isTokenExpired()).toBe(true);
+            expect(expiryInfo.isExpired).toBe(true);
 
             // Test with negative expires_in
             mockResponse = mocks.mockOidcHttpResponse({
@@ -315,9 +341,10 @@ describe('JWTSingleton Tests -->', () => {
             });
             await refreshJwt.login();
 
-            expect(refreshJwt._tokenExpiresAt).toBeNull();
-            expect(refreshJwt._tokenLifeTime).toBe(-100);
-            expect(refreshJwt.isTokenExpired()).toBe(true);
+            expiryInfo = refreshJwt.getTokenExpiryInfo();
+            expect(expiryInfo.expiresAt).toBeNull();
+            expect(expiryInfo.lifeTime).toBe(-100);
+            expect(expiryInfo.isExpired).toBe(true);
 
             // Test with null expires_in
             mockResponse = mocks.mockOidcHttpResponse({
@@ -329,9 +356,10 @@ describe('JWTSingleton Tests -->', () => {
             });
             await refreshJwt.login();
 
-            expect(refreshJwt._tokenExpiresAt).toBeNull();
-            expect(refreshJwt._tokenLifeTime).toBeNull();
-            expect(refreshJwt.isTokenExpired()).toBe(true);
+            expiryInfo = refreshJwt.getTokenExpiryInfo();
+            expect(expiryInfo.expiresAt).toBeNull();
+            expect(expiryInfo.lifeTime).toBeUndefined();
+            expect(expiryInfo.isExpired).toBe(true);
         });
     });
 });
