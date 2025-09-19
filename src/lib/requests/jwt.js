@@ -56,9 +56,7 @@ class JWTSingleton {
 
     async refreshAccessToken() {
         if (!this._auth.enabled || !this._refreshToken) {
-            if (this._logger) {
-                this._logger.warn('Token refresh not possible - auth disabled or no refresh token available');
-            }
+            this._logger.warn('Token refresh not possible - auth disabled or no refresh token available');
             return null;
         }
 
