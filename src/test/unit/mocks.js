@@ -34,6 +34,7 @@ const mockModelOptions = ({
 
 const mockOidcData = ({
     access_token = 'fake.access.token',
+    refresh_token,
 } = {}) => Object.freeze({
     access_token,
     expires_in: 300,
@@ -41,6 +42,7 @@ const mockOidcData = ({
     token_type: 'Bearer',
     'not-before-policy': 0,
     scope: 'profile email',
+    ...(refresh_token ? { refresh_token } : {}),
 });
 
 const mockUploadExternalDfspJWSData = () => Object.freeze([
