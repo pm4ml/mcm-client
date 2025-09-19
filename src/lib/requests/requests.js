@@ -40,9 +40,9 @@ class Requests {
      *
      * @returns {object} - headers object for use in requests to mojaloop api endpoints
      */
-    _buildHeaders() {
+    async _buildHeaders() {
         const JWT = new JWTSingleton();
-        const token = JWT.getToken();
+        const token = await JWT.getToken();
 
         const headers = makeJsonHeaders();
 
@@ -77,7 +77,7 @@ class Requests {
 
     async #sendRequestWithRetry(url, method, body = null) {
         return await retry(async () => {
-            const headers = this._buildHeaders();
+            const headers = await this._buildHeaders();
             const uri = buildUrl(this.hubEndpoint, url);
             const reqOpts = {
                 method,

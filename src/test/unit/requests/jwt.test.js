@@ -12,9 +12,13 @@ jest.mock('@mojaloop/sdk-standard-components', () => ({
 describe('JWTSingleton Tests -->', () => {
     let jwt;
 
-    beforeAll(() => {
+    beforeAll(async () => {
         jwt = new JWTSingleton(mocks.mockJwtOptions());
-        expect(jwt.getToken()).toBeUndefined();
+        expect(await jwt.getToken()).toBeUndefined();
+    });
+
+    afterAll(() => {
+        jwt.destroy();
     });
 
     test('should return the same instance', () => {
@@ -24,9 +28,9 @@ describe('JWTSingleton Tests -->', () => {
 
     test('should get access token', async () => {
         mockResponse = mocks.mockOidcHttpResponse();
-        expect(jwt.getToken()).toBeUndefined();
+        expect(await jwt.getToken()).toBeUndefined();
         await jwt.login();
-        expect(jwt.getToken()).toBe(mocks.mockOidcData().access_token);
+        expect(await jwt.getToken()).toBe(mocks.mockOidcData().access_token);
     });
 
     test('should throw error if no access token in response', async () => {

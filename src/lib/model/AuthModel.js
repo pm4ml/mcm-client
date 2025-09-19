@@ -20,7 +20,6 @@ class AuthModel {
         this._auth = opts.auth;
         this._hubIamProviderUrl = opts.hubIamProviderUrl;
         this._oidcScope = opts.oidcScope;
-
     }
 
     async login() {

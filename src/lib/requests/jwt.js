@@ -3,7 +3,7 @@ const querystring = require('querystring');
 const { request } = require('@mojaloop/sdk-standard-components');
 
 const { ERROR_MESSAGES, OIDC_TOKEN_ROUTE, OIDC_GRANT_TYPE } = require('../constants');
-const { oidcPayloadDto } = require('../dto');
+const { oidcPayloadDto, oidcRefreshPayloadDto } = require('../dto');
 const { buildUrl, defineAgent, makeFormUrlEncodedHeaders } = require('./common');
 
 class JWTSingleton {
@@ -19,6 +19,7 @@ class JWTSingleton {
             this._oidcTokenRoute = opts.oidcTokenRoute || OIDC_TOKEN_ROUTE;
             this._oidcGrantType = opts.oidcGrantType || OIDC_GRANT_TYPE;
             this._oidcScope = opts.oidcScope; // e.g. 'email profile'
+            this._tokenRefreshInterval = null;
 
             this.agent = defineAgent(this._hubIamProviderUrl);
         }
@@ -39,11 +40,48 @@ class JWTSingleton {
         const postData = querystring.stringify(payload);
 
         this.token = await this.post(route, postData, headers);
+
+        this._scheduleTokenRefresh();
+
         this._logger.info('login is done');
     }
 
-    getToken() {
+    async getToken() {
+        if (this._auth.enabled && this._auth.tokenRefreshEnabled) {
+            return this._getTokenSafe();
+        }
         return this.token;
+    }
+
+    async refreshAccessToken() {
+        if (!this._auth.enabled || !this._refreshToken) {
+            this._logger.warn('Token refresh not possible - auth disabled or no refresh token available');
+            return null;
+        }
+
+        try {
+            const route = this._oidcTokenRoute;
+            const headers = makeFormUrlEncodedHeaders();
+
+            const payload = oidcRefreshPayloadDto(this._auth, this._refreshToken);
+            const postData = querystring.stringify(payload);
+
+            this._logger.info('Refreshing access token...');
+            this.token = await this.post(route, postData, headers);
+
+            this._logger.info('Token refresh successful');
+            return this.token;
+        } catch (error) {
+            this._logger.error('Token refresh failed, falling back to full login:', error);
+            return this.login();
+        }
+    }
+
+    isTokenExpired(bufferSeconds = 5) {
+        if (!this._tokenExpiresAt) {
+            return true;
+        }
+        return Date.now() >= (this._tokenExpiresAt - (bufferSeconds * 1000));
     }
 
     async post(route, body, headers) {
@@ -67,11 +105,72 @@ class JWTSingleton {
                 throw new Error(ERROR_MESSAGES.loginErrorNoToken);
             }
 
+            // Storing the token expiry information for refresh scheduling
+            this._tokenLifeTime = data.expires_in;
+            this._tokenExpiresAt = Date.now() + (data.expires_in * 1000);
+            this._refreshToken = data.refresh_token;
+
             return data.access_token;
         } catch (error) {
             this._logger.error('Error Login: ', error);
             throw error;
         }
+    }
+
+    destroy() {
+        if (this._tokenRefreshInterval) {
+            clearInterval(this._tokenRefreshInterval);
+            this._tokenRefreshInterval = null;
+        }
+        this.token = null;
+        this._refreshToken = null;
+        this._tokenExpiresAt = null;
+        this._tokenLifeTime = null;
+    }
+
+    async _getTokenSafe() {
+        if (this.isTokenExpired()) {
+            this._logger.info('Token expired or about to expire, refreshing...');
+
+            // Clear existing interval to avoid double refresh
+            if (this._tokenRefreshInterval) {
+                clearInterval(this._tokenRefreshInterval);
+                this._tokenRefreshInterval = null;
+            }
+
+            await this.refreshAccessToken();
+
+            this._scheduleTokenRefresh();
+        }
+        return this.token;
+    }
+
+    _scheduleTokenRefresh() {
+        if (this._tokenRefreshInterval) {
+            clearInterval(this._tokenRefreshInterval);
+        }
+
+        if (!this._tokenLifeTime) {
+            this._logger.warn('No token lifetime available, cannot schedule refresh');
+            return;
+        }
+
+        // Refresh token {tokenRefreshMarginSeconds or 30} seconds before it expires
+        // or at 90% of lifetime, whichever is shorter
+        const tokenRefreshMarginSeconds = this._auth.tokenRefreshMarginSeconds || 30;
+        const refreshBuffer = Math.min(tokenRefreshMarginSeconds, this._tokenLifeTime * 0.1);
+        const refreshTime = (this._tokenLifeTime - refreshBuffer) * 1000;
+
+        this._logger.info(`Scheduling token refresh in ${refreshTime / 1000} seconds`);
+
+        this._tokenRefreshInterval = setInterval(async () => {
+            try {
+                await this.refreshAccessToken();
+                this._scheduleTokenRefresh();
+            } catch (error) {
+                this._logger.error('Scheduled token refresh failed:', error);
+            }
+        }, refreshTime);
     }
 }
 

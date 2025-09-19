@@ -50,6 +50,8 @@ export default {
             clientId: 'clientId',
             clientSecret: 'clientSecret',
         },
+        tokenRefreshMarginSeconds: 30,
+        tokenRefreshEnabled: true,
     },
     stateMachineDebugPort: 8888,
     whitelistIP: ['1.1.1.1/32'],
