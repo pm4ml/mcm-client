@@ -166,6 +166,10 @@ class JWTSingleton {
     }
 
     _scheduleTokenRefresh() {
+        if (!this._auth.tokenRefreshEnabled) {
+            return;
+        }
+
         if (this._tokenRefreshInterval) {
             clearInterval(this._tokenRefreshInterval);
         }

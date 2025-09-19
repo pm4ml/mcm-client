@@ -4,8 +4,10 @@ const mockAuth = ({
     enabled = true,
     clientId = 'clientId',
     clientSecret = 'clientSecret',
+    tokenRefreshEnabled = true,
 } = {}) => Object.freeze({
     enabled,
+    tokenRefreshEnabled,
     creds: {
         clientId,
         clientSecret,
