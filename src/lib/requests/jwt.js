@@ -109,7 +109,15 @@ class JWTSingleton {
 
             // Storing the token expiry information for refresh scheduling
             this._tokenLifeTime = data.expires_in;
-            this._tokenExpiresAt = Date.now() + (data.expires_in * 1000);
+
+            // Validate expires_in is a valid number before calculating expiry time
+            if (typeof data.expires_in === 'number' && data.expires_in > 0) {
+                this._tokenExpiresAt = Date.now() + (data.expires_in * 1000);
+            } else {
+                this._logger.warn('Invalid or missing expires_in value in token response:', data.expires_in);
+                this._tokenExpiresAt = null;
+            }
+
             this._refreshToken = data.refresh_token;
 
             return data.access_token;
@@ -152,7 +160,7 @@ class JWTSingleton {
             clearInterval(this._tokenRefreshInterval);
         }
 
-        if (!this._tokenLifeTime) {
+        if (!this._tokenLifeTime || typeof this._tokenLifeTime !== 'number' || this._tokenLifeTime <= 0) {
             this._logger.warn('No token lifetime available, cannot schedule refresh');
             return;
         }

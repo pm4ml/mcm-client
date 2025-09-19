@@ -54,7 +54,7 @@ const oidcRefreshPayloadDto = (auth, refreshToken) => {
         grant_type: 'refresh_token',
         refresh_token: refreshToken,
         // Include client_secret if available (for confidential clients)
-        ...(auth.creds?.clientSecret ? { client_secret: auth.creds.clientSecret } : null),
+        ...(auth.creds?.clientSecret ? { client_secret: auth.creds.clientSecret } : {}),
     };
 
     const isValid = validateOidcRefreshPayload(dto);

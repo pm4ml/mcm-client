@@ -286,5 +286,52 @@ describe('JWTSingleton Tests -->', () => {
             expect(secondInterval).toBeTruthy();
             expect(secondInterval).not.toBe(firstInterval);
         });
+
+        test('should handle invalid expires_in values gracefully', async () => {
+            refreshJwt = new JWTSingleton(mocks.mockJwtOptions());
+
+            // Test with string expires_in
+            mockResponse = mocks.mockOidcHttpResponse({
+                data: {
+                    access_token: 'token.with.string.expiry',
+                    expires_in: '300', // String instead of number
+                    refresh_token: 'refresh.token',
+                },
+            });
+            await refreshJwt.login();
+
+            expect(refreshJwt._tokenExpiresAt).toBeNull();
+            expect(refreshJwt._tokenLifeTime).toBe('300'); // Stored as-is
+            // Should be expired when _tokenExpiresAt is null
+            expect(refreshJwt.isTokenExpired()).toBe(true);
+
+            // Test with negative expires_in
+            mockResponse = mocks.mockOidcHttpResponse({
+                data: {
+                    access_token: 'token.with.negative.expiry',
+                    expires_in: -100,
+                    refresh_token: 'refresh.token',
+                },
+            });
+            await refreshJwt.login();
+
+            expect(refreshJwt._tokenExpiresAt).toBeNull();
+            expect(refreshJwt._tokenLifeTime).toBe(-100);
+            expect(refreshJwt.isTokenExpired()).toBe(true);
+
+            // Test with null expires_in
+            mockResponse = mocks.mockOidcHttpResponse({
+                data: {
+                    access_token: 'token.with.null.expiry',
+                    expires_in: null,
+                    refresh_token: 'refresh.token',
+                },
+            });
+            await refreshJwt.login();
+
+            expect(refreshJwt._tokenExpiresAt).toBeNull();
+            expect(refreshJwt._tokenLifeTime).toBeNull();
+            expect(refreshJwt.isTokenExpired()).toBe(true);
+        });
     });
 });
