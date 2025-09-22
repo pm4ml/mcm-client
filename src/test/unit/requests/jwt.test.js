@@ -230,7 +230,7 @@ describe('JWTSingleton Tests -->', () => {
             expect(expiryInfo.expiresAt).toBeGreaterThan(Date.now());
         });
 
-        test('should clear intervals on destroy', async () => {
+        test('should clear timeouts on destroy', async () => {
             refreshJwt = new JWTSingleton(mocks.mockJwtOptions());
 
             // Mock login response
@@ -282,7 +282,7 @@ describe('JWTSingleton Tests -->', () => {
             expect(expiryInfo.isExpired).toBe(true);
         });
 
-        test('should clear existing interval before scheduling new one', async () => {
+        test('should clear existing timeout before scheduling new one', async () => {
             refreshJwt = new JWTSingleton(mocks.mockJwtOptions());
 
             // First login
@@ -294,10 +294,10 @@ describe('JWTSingleton Tests -->', () => {
             });
             await refreshJwt.login();
 
-            const firstInterval = refreshJwt._tokenRefreshTimeout;
-            expect(firstInterval).toBeTruthy();
+            const firstTimeout = refreshJwt._tokenRefreshTimeout;
+            expect(firstTimeout).toBeTruthy();
 
-            // Second login should clear the first interval
+            // Second login should clear the first timeout
             mockResponse = mocks.mockOidcHttpResponse({
                 data: {
                     ...mocks.mockOidcData(),
@@ -307,9 +307,9 @@ describe('JWTSingleton Tests -->', () => {
             });
             await refreshJwt.login();
 
-            const secondInterval = refreshJwt._tokenRefreshTimeout;
-            expect(secondInterval).toBeTruthy();
-            expect(secondInterval).not.toBe(firstInterval);
+            const secondTimeout = refreshJwt._tokenRefreshTimeout;
+            expect(secondTimeout).toBeTruthy();
+            expect(secondTimeout).not.toBe(firstTimeout);
         });
 
         test('should handle invalid expires_in values gracefully', async () => {
