@@ -42,7 +42,7 @@ class Requests {
      */
     async _buildHeaders() {
         const JWT = new JWTSingleton();
-        const token = await JWT.getToken();
+        const token = JWT.getToken();
 
         const headers = makeJsonHeaders();
 

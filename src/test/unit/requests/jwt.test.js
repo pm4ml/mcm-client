@@ -12,9 +12,9 @@ jest.mock('@mojaloop/sdk-standard-components', () => ({
 describe('JWTSingleton Tests -->', () => {
     let jwt;
 
-    beforeAll(async () => {
+    beforeAll(() => {
         jwt = new JWTSingleton(mocks.mockJwtOptions());
-        expect(await jwt.getToken()).toBeUndefined();
+        expect(jwt.getToken()).toBeUndefined();
     });
 
     afterAll(() => {
@@ -28,9 +28,9 @@ describe('JWTSingleton Tests -->', () => {
 
     test('should get access token', async () => {
         mockResponse = mocks.mockOidcHttpResponse();
-        expect(await jwt.getToken()).toBeUndefined();
+        expect(jwt.getToken()).toBeUndefined();
         await jwt.login();
-        expect(await jwt.getToken()).toBe(mocks.mockOidcData().access_token);
+        expect(jwt.getToken()).toBe(mocks.mockOidcData().access_token);
     });
 
     test('should throw error if no access token in response', async () => {
@@ -96,7 +96,7 @@ describe('JWTSingleton Tests -->', () => {
                 },
             });
 
-            const token = await refreshJwt.getToken();
+            const token = refreshJwt.getToken();
             expect(token).toBe('new.access.token');
         });
 
@@ -222,7 +222,7 @@ describe('JWTSingleton Tests -->', () => {
             });
             await refreshJwt.login();
 
-            expect(refreshJwt._tokenRefreshInterval).toBeTruthy();
+            expect(refreshJwt._tokenRefreshTimeout).toBeTruthy();
 
             const expiryInfo = refreshJwt.getTokenExpiryInfo();
             expect(expiryInfo.lifeTime).toBe(300);
@@ -242,7 +242,7 @@ describe('JWTSingleton Tests -->', () => {
             });
             await refreshJwt.login();
 
-            expect(refreshJwt._tokenRefreshInterval).toBeTruthy();
+            expect(refreshJwt._tokenRefreshTimeout).toBeTruthy();
             expect(refreshJwt.token).toBeTruthy();
 
             const expiryInfoBefore = refreshJwt.getTokenExpiryInfo();
@@ -252,7 +252,7 @@ describe('JWTSingleton Tests -->', () => {
 
             refreshJwt.destroy();
 
-            expect(refreshJwt._tokenRefreshInterval).toBeNull();
+            expect(refreshJwt._tokenRefreshTimeout).toBeNull();
             expect(refreshJwt.token).toBeNull();
 
             const expiryInfoAfter = refreshJwt.getTokenExpiryInfo();
@@ -274,7 +274,7 @@ describe('JWTSingleton Tests -->', () => {
             });
             await refreshJwt.login();
 
-            expect(refreshJwt._tokenRefreshInterval).toBeNull();
+            expect(refreshJwt._tokenRefreshTimeout).toBeNull();
 
             const expiryInfo = refreshJwt.getTokenExpiryInfo();
             expect(expiryInfo.lifeTime).toBeUndefined();
@@ -294,7 +294,7 @@ describe('JWTSingleton Tests -->', () => {
             });
             await refreshJwt.login();
 
-            const firstInterval = refreshJwt._tokenRefreshInterval;
+            const firstInterval = refreshJwt._tokenRefreshTimeout;
             expect(firstInterval).toBeTruthy();
 
             // Second login should clear the first interval
@@ -307,7 +307,7 @@ describe('JWTSingleton Tests -->', () => {
             });
             await refreshJwt.login();
 
-            const secondInterval = refreshJwt._tokenRefreshInterval;
+            const secondInterval = refreshJwt._tokenRefreshTimeout;
             expect(secondInterval).toBeTruthy();
             expect(secondInterval).not.toBe(firstInterval);
         });

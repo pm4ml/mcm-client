@@ -19,12 +19,12 @@ describe('DFSPCertificateModel Tests -->', () => {
 
         const options = mocks.mockJwtOptions();
         const jwt = new JWTSingleton(options);
-        expect(await jwt.getToken()).toBeUndefined();
+        expect(jwt.getToken()).toBeUndefined();
 
         const authModel = new AuthModel(options);
         await authModel.login();
 
-        token = await jwt.getToken();
+        token = jwt.getToken();
         expect(token).toBe(mocks.mockOidcData().access_token);
     });
 

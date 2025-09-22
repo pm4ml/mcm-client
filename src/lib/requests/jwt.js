@@ -20,7 +20,7 @@ class JWTSingleton {
             this._oidcTokenRoute = opts.oidcTokenRoute || OIDC_TOKEN_ROUTE;
             this._oidcGrantType = opts.oidcGrantType || OIDC_GRANT_TYPE;
             this._oidcScope = opts.oidcScope; // e.g. 'email profile'
-            this._tokenRefreshInterval = null;
+            this._tokenRefreshTimeout = null;
 
             this.agent = defineAgent(this._hubIamProviderUrl);
         }
@@ -47,10 +47,7 @@ class JWTSingleton {
         this._logger.info('login is done');
     }
 
-    async getToken() {
-        if (this._auth.enabled && this._auth.tokenRefreshEnabled) {
-            return this._getTokenSafe();
-        }
+    getToken() {
         return this.token;
     }
 
@@ -137,9 +134,9 @@ class JWTSingleton {
     }
 
     destroy() {
-        if (this._tokenRefreshInterval) {
-            clearInterval(this._tokenRefreshInterval);
-            this._tokenRefreshInterval = null;
+        if (this._tokenRefreshTimeout) {
+            clearTimeout(this._tokenRefreshTimeout);
+            this._tokenRefreshTimeout = null;
         }
         this.token = null;
         this._refreshToken = null;
@@ -147,30 +144,13 @@ class JWTSingleton {
         this._tokenLifeTime = null;
     }
 
-    async _getTokenSafe() {
-        if (this.isTokenExpired()) {
-            this._logger.info('Token expired or about to expire, refreshing...');
-
-            // Clear existing interval to avoid double refresh
-            if (this._tokenRefreshInterval) {
-                clearInterval(this._tokenRefreshInterval);
-                this._tokenRefreshInterval = null;
-            }
-
-            await this.refreshAccessToken();
-
-            this._scheduleTokenRefresh();
-        }
-        return this.token;
-    }
-
     _scheduleTokenRefresh() {
         if (!this._auth.tokenRefreshEnabled) {
             return;
         }
 
-        if (this._tokenRefreshInterval) {
-            clearInterval(this._tokenRefreshInterval);
+        if (this._tokenRefreshTimeout) {
+            clearTimeout(this._tokenRefreshTimeout);
         }
 
         if (!this._tokenLifeTime || typeof this._tokenLifeTime !== 'number' || this._tokenLifeTime <= 0) {
@@ -186,7 +166,7 @@ class JWTSingleton {
 
         this._logger.info(`Scheduling token refresh in ${refreshTime / 1000} seconds`);
 
-        this._tokenRefreshInterval = setInterval(async () => {
+        this._tokenRefreshTimeout = setTimeout(async () => {
             try {
                 await this.refreshAccessToken();
                 this._scheduleTokenRefresh();
