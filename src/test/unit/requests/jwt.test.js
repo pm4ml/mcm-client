@@ -91,7 +91,7 @@ describe('JWTSingleton Tests -->', () => {
             expect(refreshJwt.token).toBe('refreshed.access.token');
         });
 
-        test('should return null when refresh token is not available', async () => {
+        test('should fall back to login when refresh token is not available', async () => {
             refreshJwt = new JWTSingleton(mocks.mockJwtOptions());
 
             // Initial login without refresh token
@@ -104,8 +104,8 @@ describe('JWTSingleton Tests -->', () => {
             await refreshJwt.login();
 
             // Since there's no refresh token, refreshAccessToken should return null
-            const result = await refreshJwt.refreshAccessToken();
-            expect(result).toBeNull();
+            await refreshJwt.refreshAccessToken();
+            expect(refreshJwt.token).toBe('fake.access.token');
         });
 
         test('should fall back to login when refresh token request fails', async () => {
