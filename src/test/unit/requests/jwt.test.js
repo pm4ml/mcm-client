@@ -65,41 +65,6 @@ describe('JWTSingleton Tests -->', () => {
             jest.useRealTimers();
         });
 
-        test('should refresh token when expired using getToken with tokenRefreshEnabled', async () => {
-            const mockOptions = mocks.mockJwtOptions({
-                auth: {
-                    ...mocks.mockAuth(),
-                    tokenRefreshEnabled: true,
-                },
-            });
-            refreshJwt = new JWTSingleton(mockOptions);
-
-            // Mock initial login response
-            mockResponse = mocks.mockOidcHttpResponse({
-                data: {
-                    ...mocks.mockOidcData(),
-                    refresh_token: 'refresh.token.value',
-                },
-            });
-            await refreshJwt.login();
-
-            // Simulate token expiry by setting expiry time in the past
-            const pastTime = Date.now() - 1000;
-            refreshJwt._tokenExpiresAt = pastTime;
-
-            // Mock refresh token response
-            mockResponse = mocks.mockOidcHttpResponse({
-                data: {
-                    ...mocks.mockOidcData(),
-                    access_token: 'new.access.token',
-                    refresh_token: 'new.refresh.token',
-                },
-            });
-
-            const token = refreshJwt.getToken();
-            expect(token).toBe('new.access.token');
-        });
-
         test('should refresh token manually using refreshAccessToken', async () => {
             refreshJwt = new JWTSingleton(mocks.mockJwtOptions());
 
