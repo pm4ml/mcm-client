@@ -20,6 +20,7 @@ export interface MachineOpts {
   vault: Vault;
   refreshIntervalSeconds: number;
   reportStatesStatusIntervalSeconds?: number;
+  certExpiryThresholdDays?: number;
   dfspCertificateModel: DFSPCertificateModel;
   dfspEndpointModel: DFSPEndpointModel;
   hubCertificateModel: HubCertificateModel;
