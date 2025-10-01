@@ -127,6 +127,10 @@ export namespace DfspClientCert {
                 })),
               ],
             },
+            {
+              target: 'creatingDfspCsr',
+              cond: 'isDfspClientCertExpiring',
+            },
             { target: 'completed' },
           ],
         },
@@ -150,9 +154,23 @@ export namespace DfspClientCert {
     },
   });
 
-  export const createGuards = <TContext extends Context>() => ({
+  export const createGuards = <TContext extends Context>(opts: MachineOpts) => ({
     hasNewDfspClientCert: (ctx: TContext, event: AnyEventObject) =>
       event.data?.state === CertState.CERT_SIGNED && event.data.certificate !== ctx.dfspClientCert!.cert,
+    isDfspClientCertExpiring: (ctx: TContext, event: AnyEventObject) => {
+        if (
+            event.data?.state === CertState.CERT_SIGNED &&
+            event.data.certificate === ctx.dfspClientCert!.cert &&
+            event.data.certInfo?.notAfter
+        ) {
+            const expiryDate = new Date(event.data.certInfo.notAfter);
+            const now = new Date();
+            const thresholdDays = opts.certExpiryThresholdDays ?? 7;
+            const thresholdDate = new Date(now.getTime() + thresholdDays * 24 * 60 * 60 * 1000);
+            return expiryDate <= thresholdDate;
+        }
+        return false;
+    },
     hasCert: (ctx: TContext) => !!ctx.dfspClientCert?.cert && !!ctx.dfspClientCert?.privateKey,
   });
 }
