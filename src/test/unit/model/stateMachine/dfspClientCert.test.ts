@@ -29,7 +29,7 @@ const startMachine = (opts: ReturnType<typeof createMachineOpts>, onConfigChange
     },
     {
       guards: {
-        ...DfspClientCert.createGuards<Context>(),
+        ...DfspClientCert.createGuards<Context>(opts),
       },
       actions: {},
     }
@@ -109,5 +109,87 @@ describe('DfspClientCert', () => {
     });
 
     service.stop();
+  });
+
+  test('should detect expiring certificate with default threshold', () => {
+    const guards = DfspClientCert.createGuards<Context>(opts);
+    const ctx: Context = {
+      dfspClientCert: {
+        cert: 'DFSP CERT',
+        privateKey: 'PKEY',
+      },
+    };
+
+    // Certificate expiring in 5 days (within default 7 day threshold)
+    const expiringDate = new Date();
+    expiringDate.setDate(expiringDate.getDate() + 5);
+
+    const event = {
+      type: 'done.invoke.getDfspClientCert',
+      data: {
+        state: 'CERT_SIGNED',
+        certificate: 'DFSP CERT',
+        certInfo: {
+          notAfter: expiringDate.toISOString(),
+        },
+      },
+    };
+
+    expect(guards.isDfspClientCertExpiring(ctx, event)).toBe(true);
+  });
+
+  test('should detect expiring certificate with custom threshold', () => {
+    opts.certExpiryThresholdDays = 14;
+    const guards = DfspClientCert.createGuards<Context>(opts);
+    const ctx: Context = {
+      dfspClientCert: {
+        cert: 'DFSP CERT',
+        privateKey: 'PKEY',
+      },
+    };
+
+    // Certificate expiring in 10 days (within custom 14 day threshold)
+    const expiringDate = new Date();
+    expiringDate.setDate(expiringDate.getDate() + 10);
+
+    const event = {
+      type: 'done.invoke.getDfspClientCert',
+      data: {
+        state: 'CERT_SIGNED',
+        certificate: 'DFSP CERT',
+        certInfo: {
+          notAfter: expiringDate.toISOString(),
+        },
+      },
+    };
+
+    expect(guards.isDfspClientCertExpiring(ctx, event)).toBe(true);
+  });
+
+  test('should not detect non-expiring certificate', () => {
+    const guards = DfspClientCert.createGuards<Context>(opts);
+    const ctx: Context = {
+      dfspClientCert: {
+        cert: 'DFSP CERT',
+        privateKey: 'PKEY',
+      },
+    };
+
+    // Certificate expiring in 30 days (outside 7 day threshold)
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 30);
+
+    const event = {
+      type: 'done.invoke.getDfspClientCert',
+      data: {
+        state: 'CERT_SIGNED',
+        certificate: 'DFSP CERT',
+        certInfo: {
+          notAfter: futureDate.toISOString(),
+        },
+      },
+    };
+
+    expect(guards.isDfspClientCertExpiring(ctx, event)).toBe(false);
   });
 });

@@ -255,7 +255,7 @@ class ConnectionStateMachine {
         guards: {
           ...PeerJWS.createGuards<Context>(),
           // ...DfspJWS.createGuards<Context>(),
-          ...DfspClientCert.createGuards<Context>(),
+          ...DfspClientCert.createGuards<Context>(opts),
           ...DfspServerCert.createGuards<Context>(opts),
           // ...DfspCA.createGuards<Context>(),
           ...HubCert.createGuards<Context>(),

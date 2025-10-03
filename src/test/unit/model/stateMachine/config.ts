@@ -22,6 +22,7 @@ export default {
     cacheSyncInterval: 10,
     mcmServerEndpoint: 'http://localhost:3001/api',
     refreshIntervalSeconds: 60,
+    certExpiryThresholdDays: 7,
     mojaloopConnectorFQDN: 'connector.fsp.example.com',
     certManager: {
         enabled: false,
