@@ -70,6 +70,7 @@ export interface VaultOpts {
   keyAlgorithm: string;
   logger: SDK.Logger.SdkLogger;
   commonName: string;
+  retryDelayMs?: number;
 }
 
 const MAX_TIMEOUT = Math.pow(2, 31) / 2 - 1; // https://developer.mozilla.org/en-US/docs/Web/API/setTimeout#maximum_delay_value
@@ -95,7 +96,7 @@ export default class Vault {
       ));
   }
 
-  private async _withTokenRefresh<T>(fn: () => Promise<T>, retry = true): Promise<T> {
+  private async _withTokenRefresh<T>(fn: () => Promise<T>, retry = true, retryDelayMs=1000): Promise<T> {
     try {
       return await fn();
     } catch (e: any) {
@@ -106,6 +107,10 @@ export default class Vault {
 
       if (isTokenError && retry) {
         this.logger.warn('Vault token expired or invalid, reconnecting...');
+        // put a delay here
+        const delayMs = this.cfg.retryDelayMs || retryDelayMs;
+        this.logger.info(`Waiting for ${delayMs} ms before retrying...`);
+        await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
         await this.connect();
         return this._withTokenRefresh(fn, false); // Only retry once
       }
