@@ -6,7 +6,7 @@ export const createProgressMonitorEntry = ({
     stateDescription = '',
     retries = 0,
     error = '',
-} = {}): ProgressMonitor.ProgressMonitorEntry => ({
+} = {} as Partial<ProgressMonitor.ProgressMonitorEntry>): ProgressMonitor.ProgressMonitorEntry => ({
     status,
     lastUpdated,
     ...(stateDescription && { stateDescription }),
