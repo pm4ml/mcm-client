@@ -173,7 +173,7 @@ export namespace ProgressMonitor {
     completedStates: (ctx) => Object.values(ctx.progressMonitor).every((entry) => entry),
     shouldTrackProgress: (_: Context, event: Event) => {
       const isCompletedEvent = event.type in eventToProgressMap;
-      opts.logger.warn(`[progressMonitor]  shouldTrackProgress: ${isCompletedEvent}`, { event })
+      opts.logger.debug(`[progressMonitor]  shouldTrackProgress: ${isCompletedEvent}`, { event })
       return isCompletedEvent;
     },
   });
