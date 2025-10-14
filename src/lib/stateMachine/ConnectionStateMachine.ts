@@ -261,7 +261,7 @@ class ConnectionStateMachine {
           ...HubCert.createGuards<Context>(),
           ...HubCA.createGuards<Context>(),
           ...EndpointConfig.createGuards<Context>(opts),
-          ...ProgressMonitor.createGuards<Context>(),
+          ...ProgressMonitor.createGuards<Context>(opts),
         },
         actions: {
           // ...ConnectorConfig.createActions<Context>(),

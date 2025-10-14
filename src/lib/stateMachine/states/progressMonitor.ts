@@ -19,6 +19,7 @@ export namespace ProgressMonitor {
     COMPLETED = 'completed',
     IN_ERROR = 'inError',
   }
+
   export interface ProgressMonitorEntry {
     status: ProgressState;
     lastUpdated: Date | null;
@@ -40,25 +41,22 @@ export namespace ProgressMonitor {
   }
 
   export interface Context {
-    progressMonitor?: {
-      PEER_JWS: ProgressMonitorEntry;
-      DFSP_JWS: ProgressMonitorEntry;
-      DFSP_CA: ProgressMonitorEntry;
-      DFSP_SERVER_CERT: ProgressMonitorEntry;
-      DFSP_CLIENT_CERT: ProgressMonitorEntry;
-      HUB_CA: ProgressMonitorEntry;
-      HUB_CERT: ProgressMonitorEntry;
-      ENDPOINT_CONFIG: ProgressMonitorEntry;
-    };
+    progressMonitor?: Record<MachineName, ProgressMonitorEntry>;
   }
 
-  type FailureErrorMessageEvent = { type: 'FAILED'; machine: string; state: string; error: string; retries: number };
+  type FailureErrorMessageEvent = {
+    type: 'FAILED';
+    machine: string;
+    state: string;
+    error: string;
+    retries: number
+  };
 
   export type Event = DoneEventObject | FailureErrorMessageEvent;
 
   // CSI-1865: Only track meaningful external state changes (completion events)
   // Note: Error events handled separately via FAILED event handler
-  const eventToProgressMap: { [key: string]: { machine: MachineName; state: ProgressState } } = {
+  const eventToProgressMap: { [key: string]: { machine: MachineName; state: ProgressState.COMPLETED } } = {
     NEW_HUB_CA_FETCHED: { machine: MachineName.HUB_CA, state: ProgressState.COMPLETED },
     DFSP_CA_PROPAGATED: { machine: MachineName.DFSP_CA, state: ProgressState.COMPLETED },
     DFSP_CLIENT_CERT_CONFIGURED: { machine: MachineName.DFSP_CLIENT_CERT, state: ProgressState.COMPLETED },
@@ -84,6 +82,15 @@ export namespace ProgressMonitor {
       },
     };
   }
+
+  const initMonitorEntry = ({
+    status = ProgressState.PENDING,
+    lastUpdated = new Date()
+  } = {} as Partial<ProgressMonitorEntry>): ProgressMonitorEntry  => ({
+    status,
+    lastUpdated,
+    stateDescription: 'Service not initialized',
+  })
 
   export const createState = <TContext extends Context>(opts: MachineOpts): MachineConfig<TContext, any, any> => ({
     id: 'progressMonitor',
@@ -111,6 +118,7 @@ export namespace ProgressMonitor {
       },
       '*': {
         actions: assign<Context>({ progressMonitor: handleProgressChanges }) as any,
+        cond: 'shouldTrackProgress',
         target: '.handlingProgressChange',
         internal: false,
       },
@@ -119,48 +127,16 @@ export namespace ProgressMonitor {
       init: {
         always: {
           actions: assign({
-            progressMonitor: () => ({
-              PEER_JWS: {
-                status: ProgressState.PENDING,
-                lastUpdated: new Date(),
-                stateDescription: `Service not initialized`,
-              },
-              DFSP_JWS: {
-                status: ProgressState.PENDING,
-                lastUpdated: new Date(),
-                stateDescription: `Service not initialized`,
-              },
-              DFSP_CA: {
-                status: ProgressState.PENDING,
-                lastUpdated: new Date(),
-                stateDescription: `Service not initialized`,
-              },
-              DFSP_SERVER_CERT: {
-                status: ProgressState.PENDING,
-                lastUpdated: new Date(),
-                stateDescription: `Service not initialized`,
-              },
-              DFSP_CLIENT_CERT: {
-                status: ProgressState.PENDING,
-                lastUpdated: new Date(),
-                stateDescription: `Service not initialized`,
-              },
-              HUB_CA: { status: ProgressState.PENDING, lastUpdated: null, stateDescription: `Service not initialized` },
-              HUB_CERT: {
-                status: ProgressState.PENDING,
-                lastUpdated: new Date(),
-                stateDescription: `Service not initialized`,
-              },
-              ENDPOINT_CONFIG: {
-                status: ProgressState.PENDING,
-                lastUpdated: new Date(),
-                stateDescription: `Service not initialized`,
-              },
-              UPLOAD_PEER_JWS: {
-                status: ProgressState.PENDING,
-                lastUpdated: new Date(),
-                stateDescription: `Service not initialized`,
-              },
+            progressMonitor: (): Context['progressMonitor'] => ({
+              PEER_JWS: initMonitorEntry(),
+              DFSP_JWS: initMonitorEntry(),
+              DFSP_CA: initMonitorEntry(),
+              DFSP_SERVER_CERT: initMonitorEntry(),
+              DFSP_CLIENT_CERT: initMonitorEntry(),
+              HUB_CA: initMonitorEntry({ lastUpdated: null }), // todo: clarify why lastUpdated is null here ??
+              HUB_CERT: initMonitorEntry(),
+              ENDPOINT_CONFIG: initMonitorEntry(),
+              UPLOAD_PEER_JWS: initMonitorEntry(),
             }),
           }) as any,
           target: 'idle',
@@ -168,7 +144,10 @@ export namespace ProgressMonitor {
       },
       idle: {},
       handlingProgressChange: {
-        always: [{ target: 'notifyingCompleted', cond: 'completedStates' }, { target: 'idle' }],
+        always: [
+          { target: 'notifyingCompleted', cond: 'completedStates' },
+          { target: 'idle' }
+        ],
       },
       notifyingCompleted: {
         invoke: {
@@ -190,8 +169,12 @@ export namespace ProgressMonitor {
     },
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  export const createGuards = <TContext extends Context>() => ({
+  export const createGuards = <TContext extends Context>(opts: MachineOpts) => ({
     completedStates: (ctx) => Object.values(ctx.progressMonitor).every((entry) => entry),
+    shouldTrackProgress: (_: Context, event: Event) => {
+      const isCompletedEvent = event.type in eventToProgressMap;
+      opts.logger.warn(`[progressMonitor]  shouldTrackProgress: ${isCompletedEvent}`, { event })
+      return isCompletedEvent;
+    },
   });
 }

@@ -1,4 +1,4 @@
-import { ProgressMonitor } from '../../src/lib/stateMachine/states';
+import { ProgressMonitor } from '../../../../lib/stateMachine/states';
 
 export const createProgressMonitorEntry = ({
     status = ProgressMonitor.ProgressState.PENDING,
@@ -23,6 +23,7 @@ export const createProgressMonitorContext = ({
     HUB_CA = createProgressMonitorEntry(),
     HUB_CERT = createProgressMonitorEntry(),
     ENDPOINT_CONFIG = createProgressMonitorEntry(),
+    UPLOAD_PEER_JWS = createProgressMonitorEntry(),
 } = {}): ProgressMonitor.Context => ({
     progressMonitor: {
         PEER_JWS,
@@ -33,5 +34,6 @@ export const createProgressMonitorContext = ({
         HUB_CA,
         HUB_CERT,
         ENDPOINT_CONFIG,
+        UPLOAD_PEER_JWS,
     },
 });

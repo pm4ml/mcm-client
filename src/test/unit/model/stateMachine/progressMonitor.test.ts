@@ -13,10 +13,12 @@ import { createMachine, interpret } from 'xstate';
 import { createMachineOpts } from './commonMocks';
 import { waitFor } from 'xstate/lib/waitFor';
 
-import * as fixtures from '../../../fixtures';
+import * as fixtures from './fixtures';
 
 type Context = ProgressMonitor.Context;
 type Event = ProgressMonitor.Event;
+
+const { MachineName, ProgressState } = ProgressMonitor;
 
 const startMachine = (opts: ReturnType<typeof createMachineOpts>) => {
   const machine = createMachine<Context, Event>(
@@ -30,7 +32,7 @@ const startMachine = (opts: ReturnType<typeof createMachineOpts>) => {
     },
     {
       guards: {
-        ...ProgressMonitor.createGuards<Context>(),
+        ...ProgressMonitor.createGuards<Context>(opts),
       },
       actions: {},
     }
@@ -43,15 +45,19 @@ const startMachine = (opts: ReturnType<typeof createMachineOpts>) => {
 };
 
 describe('ProgressMonitor', () => {
+  let service: ReturnType<typeof startMachine>;
   let opts: ReturnType<typeof createMachineOpts>;
 
-  beforeAll(() => {
+  beforeEach(() => {
     opts = createMachineOpts();
-  });
+    service = startMachine(opts);
+  })
+
+  afterEach(() => {
+    service.stop();
+  })
 
   test('should initialize context', async () => {
-    const service = startMachine(opts);
-
     await waitFor(service, (state) => state.matches('progressMonitor.idle'));
 
     service.send('NEW_HUB_CA_FETCHED');
@@ -64,8 +70,34 @@ describe('ProgressMonitor', () => {
     service.send('ENDPOINT_CONFIG_PROPAGATED');
 
     await waitFor(service, (state) => state.matches('progressMonitor.notifyingCompleted'));
+  });
 
-    service.stop();
+  test('should skip tracking of internal state changes', async () => {
+    const s0 = await waitFor(service, (state) => state.matches('progressMonitor.idle'));
+    Object.values(s0.context.progressMonitor!).forEach((entry) => {
+      expect(entry.status).toBe(ProgressState.PENDING);
+    })
+
+    service.send('COMPARING_UPLOAD_PEER_JWS');
+    const s1 = await waitFor(service, (state) => state.matches('progressMonitor.idle'));
+
+    // No state changes should be tracked
+    Object.values(s1.context.progressMonitor!).forEach((entry) => {
+      expect(entry.status).toBe(ProgressState.PENDING);
+    })
+
+    const COMPLETED_EVENT = 'UPLOAD_PEER_JWS_COMPLETED'
+    service.send(COMPLETED_EVENT);
+    const s2 = await waitFor(service, (state) => state.matches('progressMonitor.idle'));
+
+    expect(s2.context.progressMonitor![MachineName.UPLOAD_PEER_JWS].status).toBe(ProgressState.COMPLETED)
+    Object.entries(s2.context.progressMonitor!).forEach(([machine, entry]) => {
+      if (machine === MachineName.UPLOAD_PEER_JWS) {
+        expect(entry.status).toBe(ProgressState.COMPLETED);
+      } else {
+        expect(entry.status).toBe(ProgressState.PENDING);
+      }
+    })
   });
 
   describe('handleProgressChanges Tests -->', () => {
