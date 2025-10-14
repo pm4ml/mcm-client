@@ -13,6 +13,8 @@ import { createMachine, interpret } from 'xstate';
 import { createMachineOpts } from './commonMocks';
 import { waitFor } from 'xstate/lib/waitFor';
 
+import * as fixtures from '../../../fixtures';
+
 type Context = ProgressMonitor.Context;
 type Event = ProgressMonitor.Event;
 
@@ -65,4 +67,52 @@ describe('ProgressMonitor', () => {
 
     service.stop();
   });
+
+  describe('handleProgressChanges Tests -->', () => {
+    test('should update progress monitor when completion event is received', () => {
+      const mockContext: Context = fixtures.createProgressMonitorContext()
+      const event: Event = { type: 'NEW_HUB_CA_FETCHED' };
+
+      const result = ProgressMonitor.handleProgressChanges(mockContext, event);
+
+      expect(result.HUB_CA.status).toBe(ProgressMonitor.ProgressState.COMPLETED);
+      expect(result.HUB_CA.lastUpdated).toBeInstanceOf(Date);
+      expect(result.HUB_CA.stateDescription).toBe('NEW_HUB_CA_FETCHED');
+      expect(result.DFSP_CA.status).toBe(ProgressMonitor.ProgressState.PENDING);
+    });
+
+    test('should filter out intermediate/unmapped events and return unchanged progressMonitor', () => {
+      const mockContext: Context = fixtures.createProgressMonitorContext()
+      const intermediateEvent: Event = { type: 'FETCHING_HUB_CA' };
+
+      const result = ProgressMonitor.handleProgressChanges(mockContext, intermediateEvent);
+
+      expect(result).toBe(mockContext.progressMonitor);
+      expect(result.HUB_CA.status).toBe(ProgressMonitor.ProgressState.PENDING);
+    });
+
+    test('should update machines independently while preserving other machine states', () => {
+      const existingDate = new Date('2024-01-01T00:00:00Z');
+      const HUB_CA = fixtures.createProgressMonitorEntry({
+        status: ProgressMonitor.ProgressState.COMPLETED,
+        lastUpdated: existingDate,
+        stateDescription: 'NEW_HUB_CA_FETCHED',
+      })
+      const mockContext: Context = fixtures.createProgressMonitorContext({ HUB_CA })
+      const event: Event = { type: 'DFSP_CA_PROPAGATED' };
+
+      const result = ProgressMonitor.handleProgressChanges(mockContext, event);
+
+      // DFSP_CA should be updated
+      expect(result.DFSP_CA.status).toBe(ProgressMonitor.ProgressState.COMPLETED);
+      expect(result.DFSP_CA.lastUpdated).toBeInstanceOf(Date);
+      expect(result.DFSP_CA.stateDescription).toBe('DFSP_CA_PROPAGATED');
+      // HUB_CA should remain unchanged
+      expect(result.HUB_CA.status).toBe(ProgressMonitor.ProgressState.COMPLETED);
+      expect(result.HUB_CA.lastUpdated).toBe(existingDate);
+      expect(result.HUB_CA.stateDescription).toBe('NEW_HUB_CA_FETCHED');
+      // Other machines should remain pending
+      expect(result.DFSP_JWS.status).toBe(ProgressMonitor.ProgressState.PENDING);
+    });
+  })
 });
