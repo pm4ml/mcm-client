@@ -13,6 +13,7 @@ import { createMachine, interpret, State, StateMachine } from 'xstate';
 import { ActionObject } from 'xstate/lib/types';
 import { inspect } from '@xstate/inspect/lib/server';
 import WebSocket from 'ws';
+import logger from '../logger'
 
 import {
   DfspJWS,
@@ -70,6 +71,8 @@ class ConnectionStateMachine {
   private context?: Context;
   private actions: Record<string, ActionType> = {};
 
+  protected log = logger.child({ component: this.constructor.name })
+
   constructor(opts: MachineOpts) {
     this.opts = opts;
     this.serve();
@@ -89,7 +92,8 @@ class ConnectionStateMachine {
   }
 
   private setState(state: State<Context, Event>) {
-    this.opts.vault
+    this.log.info('setting state in vault secrets.  state.event: ', { event: state.event })
+    return this.opts.vault
       .setStateMachineState({
         state,
         hash: this.hash,

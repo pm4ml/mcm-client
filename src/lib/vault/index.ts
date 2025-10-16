@@ -71,9 +71,22 @@ export interface VaultOpts {
   logger: SDK.Logger.SdkLogger;
   commonName: string;
   retryDelayMs?: number;
+  keepAlive?: boolean;
+}
+
+type VaultLoginResult = {
+  auth: {
+    client_token: string,
+    lease_duration: number;
+    [key: string]: unknown;
+  }
 }
 
 const MAX_TIMEOUT = Math.pow(2, 31) / 2 - 1; // https://developer.mozilla.org/en-US/docs/Web/API/setTimeout#maximum_delay_value
+
+// Enable HTTP keep-alive by default for connection pooling (reduces TCP overhead)
+// Can be disabled by setting VAULT_HTTP_KEEP_ALIVE=false
+const KEEP_ALIVE = (process.env.VAULT_HTTP_KEEP_ALIVE ?? 'true') === 'true';
 
 export default class Vault {
   private cfg: VaultOpts;
@@ -120,41 +133,48 @@ export default class Vault {
 
   async connect() {
     const { auth, endpoint } = this.cfg;
-    this.logger.info('Connecting to Vault...', { endpoint });
+    const rpDefaults = { forever: this.cfg.keepAlive ?? KEEP_ALIVE };
+    this.logger.info('Connecting to Vault...', { endpoint, rpDefaults });
 
-    let creds;
+    let creds: VaultLoginResult;
 
-    const vault = NodeVault({ endpoint });
-    if (auth.appRole) {
-      creds = await vault.approleLogin({
-        role_id: auth.appRole.roleId,
-        secret_id: auth.appRole.roleSecretId,
-      });
-    } else if (auth.k8s) {
-      creds = await vault.kubernetesLogin({
-        role: auth.k8s.role,
-        jwt: auth.k8s.token,
-      });
-    } else {
-      const errMessage = 'Unsupported auth method';
-      this.logger.warn(errMessage);
-      throw new Error(errMessage);
+    try {
+      const vault = NodeVault({ endpoint, rpDefaults } as any);
+      if (auth.appRole) {
+        creds = await vault.approleLogin({
+          role_id: auth.appRole.roleId,
+          secret_id: auth.appRole.roleSecretId,
+        });
+      } else if (auth.k8s) {
+        creds = await vault.kubernetesLogin({
+          role: auth.k8s.role,
+          jwt: auth.k8s.token,
+        });
+      } else {
+        const errMessage = 'Unsupported auth method';
+        this.logger.warn(errMessage);
+        throw new Error(errMessage);
+      }
+
+      this.client = NodeVault({
+        endpoint,
+        token: creds.auth.client_token,
+        rpDefaults,
+      } as NodeVault.VaultOptions);
+
+      // Only clear the timer if vault has been connected successfully
+      if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+
+      const tokenRefreshMs = Math.min((creds.auth.lease_duration - 30) * 1000, MAX_TIMEOUT);
+      this.reconnectTimer = setTimeout(this.connect.bind(this), tokenRefreshMs);
+
+      this.logger.info(
+        `Connected to Vault  [reconnect after: ${tokenRefreshMs} ms]`, { endpoint }
+      );
+    } catch (err) {
+      this.logger.child({ endpoint, rpDefaults }).error(`error in vault.connect(): `, err);
+      throw err;
     }
-
-    this.client = NodeVault({
-      endpoint,
-      token: creds.auth.client_token,
-    });
-
-    // Only clear the timer if vault has been connected successfully
-    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
-
-    const tokenRefreshMs = Math.min((creds.auth.lease_duration - 10) * 1000, MAX_TIMEOUT);
-    this.reconnectTimer = setTimeout(this.connect.bind(this), tokenRefreshMs);
-
-    this.logger.info(
-      `Connected to Vault  [reconnect after: ${tokenRefreshMs} ms]`,
-    );
   }
 
   disconnect() {
