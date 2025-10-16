@@ -92,8 +92,11 @@ class ConnectionStateMachine {
   }
 
   private setState(state: State<Context, Event>) {
-    this.log.info('setting state in vault secrets.  state.event: ', { event: state.event })
-    return this.opts.vault
+    // (?) think if we need to add state format validation
+    const log = this.log.child({ state: state.event } as any);
+    log.info(`setStateMachineState in vault secrets...  [state.type: ${state.event?.type}]:`);
+
+    this.opts.vault
       .setStateMachineState({
         state,
         hash: this.hash,
@@ -101,7 +104,8 @@ class ConnectionStateMachine {
         actions: this.actions,
       })
       .catch((err) => {
-        this.opts.logger.warn('Failed to set state machine state', err);
+        log.error('error in setStateMachineState to vault: ', err);
+        // (?) think what to do with this error
       });
   }
 
