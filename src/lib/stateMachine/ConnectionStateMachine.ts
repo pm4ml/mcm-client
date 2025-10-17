@@ -30,11 +30,7 @@ import {
 } from './states';
 
 import { MachineOpts } from './states/MachineOpts';
-
-const INTERMEDIATE_EVENT_TYPE_PREFIXES: string[] = [
-  'done.invoke',
-  'xstate.after'
-] as const;
+import { EXTERNAL_EVENT_TYPES } from './constants';
 
 type Context = PeerJWS.Context &
   DfspJWS.Context &
@@ -122,9 +118,9 @@ class ConnectionStateMachine {
 
   private needToStoreState(state: State<Context, Event>) {
     const { type = '' } = state.event || {}
-    const isIntermediate = INTERMEDIATE_EVENT_TYPE_PREFIXES.some(prefix => type.startsWith(prefix))
-    this.log.verbose('isIntermediate event: ', { isIntermediate, event: state.event })
-    return !isIntermediate;
+    const isExternal = EXTERNAL_EVENT_TYPES.includes(type)
+    this.log.verbose('isExternal event: ', { isExternal, event: state.event })
+    return isExternal;
   }
 
   private updateActions(acts: Array<ActionType>) {

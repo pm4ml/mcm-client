@@ -26,7 +26,8 @@
  ******/
 
 import { State } from 'xstate';
-import { ConnectionStateMachine } from '../../../../lib/stateMachine/ConnectionStateMachine';
+import { ConnectionStateMachine } from '@app/lib/stateMachine';
+import { EXTERNAL_EVENT_TYPES } from '@app/lib/stateMachine/constants';
 import { createMachineOpts } from '../../model/stateMachine/commonMocks';
 
 describe('ConnectionStateMachine Tests -->', () => {
@@ -43,24 +44,31 @@ describe('ConnectionStateMachine Tests -->', () => {
       connectionStateMachine.stop();
     });
 
-    test('should return false for intermediate "done.invoke" event', () => {
+    test('should return true for external event PEER_JWS_CONFIGURED', () => {
       const state = {
-        event: { type: 'done.invoke.someService' },
+        event: { type: EXTERNAL_EVENT_TYPES[0] },
       } as State<any, any>;
 
       const result = (connectionStateMachine as any).needToStoreState(state);
-
-      expect(result).toBe(false);
+      expect(result).toBe(true);
     });
 
-    test('should return true for non-intermediate event', () => {
+    test('should return true for external event UPLOADING_DFSP_CSR', () => {
+      const state = {
+        event: { type: 'UPLOADING_DFSP_CSR' },
+      } as State<any, any>;
+
+      const result = (connectionStateMachine as any).needToStoreState(state);
+      expect(result).toBe(true);
+    });
+
+    test('should return false for non-external event', () => {
       const state = {
         event: { type: 'REGULAR_EVENT' },
       } as State<any, any>;
 
       const result = (connectionStateMachine as any).needToStoreState(state);
-
-      expect(result).toBe(true);
+      expect(result).toBe(false);
     });
   });
 });
