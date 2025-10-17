@@ -42,7 +42,9 @@ The core of this library is `ConnectionStateMachine` (src/lib/stateMachine/Conne
 11. **progressMonitor**: Track and report state of all workflows
 
 #### State Persistence
-- State machine state is persisted to Vault at `state-machine-state`
+- State machine state is persisted to Vault at `state-machine-state` **only on external events** (not intermediate XState events)
+- External events defined in `src/lib/stateMachine/constants.ts` (8 defaults: PEER_JWS_CONFIGURED, DFSP_JWS_PROPAGATED, DFSP_CA_PROPAGATED, DFSP_SERVER_CERT_CONFIGURED, DFSP_CLIENT_CERT_CONFIGURED, HUB_CLIENT_CERT_SIGNED, ENDPOINT_CONFIG_PROPAGATED, UPLOADING_DFSP_CSR)
+- Additional external events can be configured via `ADDITIONAL_EXTERNAL_EVENT_TYPES_CSV` environment variable
 - Each machine version has a SHA-256 hash of its state configuration
 - On restart, the machine checks hash and version to decide whether to restore or start fresh
 - Actions (pending timers/invocations) are serialized and restored
