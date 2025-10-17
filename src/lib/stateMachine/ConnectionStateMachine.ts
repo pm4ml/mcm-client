@@ -31,6 +31,11 @@ import {
 
 import { MachineOpts } from './states/MachineOpts';
 
+const INTERMEDIATE_EVENT_TYPE_PREFIXES: string[] = [
+  'done.invoke',
+  'xstate.after'
+] as const;
+
 type Context = PeerJWS.Context &
   DfspJWS.Context &
   DfspCA.Context &
@@ -93,9 +98,15 @@ class ConnectionStateMachine {
 
   private setState(state: State<Context, Event>) {
     // (?) think if we need to add state format validation
-    const log = this.log.child({ state: state.event } as any);
-    log.info(`setStateMachineState in vault secrets...  [state.type: ${state.event?.type}]:`);
+    const log = this.log.child({ eventType: state.event?.type });
 
+    const needToStore = this.needToStoreState(state);
+    if (!needToStore) {
+      log.info('skip setStateMachineState in vault secrets');
+      return;
+    }
+
+    log.info(`setStateMachineState in vault secrets...`);
     this.opts.vault
       .setStateMachineState({
         state,
@@ -107,6 +118,13 @@ class ConnectionStateMachine {
         log.error('error in setStateMachineState to vault: ', err);
         // (?) think what to do with this error
       });
+  }
+
+  private needToStoreState(state: State<Context, Event>) {
+    const { type = '' } = state.event || {}
+    const isIntermediate = INTERMEDIATE_EVENT_TYPE_PREFIXES.some(prefix => type.startsWith(prefix))
+    this.log.verbose('isIntermediate event: ', { isIntermediate, event: state.event })
+    return !isIntermediate;
   }
 
   private updateActions(acts: Array<ActionType>) {

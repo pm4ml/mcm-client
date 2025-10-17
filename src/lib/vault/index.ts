@@ -74,7 +74,7 @@ export interface VaultOpts {
   keepAlive?: boolean;
 }
 
-type VaultLoginResult = {
+type VaultLoginResult = { // https://developer.hashicorp.com/vault/api-docs/auth/token#sample-response-1
   auth: {
     client_token: string,
     lease_duration: number;
