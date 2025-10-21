@@ -1,3 +1,4 @@
+const ADDITIONAL_CSV= process.env.ADDITIONAL_EXTERNAL_EVENT_TYPES_CSV ?? ''
 
 export const EXTERNAL_EVENT_TYPES: string[] = [
   'PEER_JWS_CONFIGURED',
@@ -8,6 +9,5 @@ export const EXTERNAL_EVENT_TYPES: string[] = [
   'HUB_CLIENT_CERT_SIGNED',
   'ENDPOINT_CONFIG_PROPAGATED',
   'UPLOADING_DFSP_CSR',
-  ...(process.env.ADDITIONAL_EXTERNAL_EVENT_TYPES_CSV || '')
-    .split(',').filter(Boolean)
+  ...(ADDITIONAL_CSV).split(',').filter(Boolean)
 ] as const;

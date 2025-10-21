@@ -8,7 +8,11 @@
  *      Steven Oderayi - steven.oderayi@modusbox.com                       *
  **************************************************************************/
 
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
+import logger from '../logger';
+import { PeerJWS } from '../stateMachine/states/peerJWS';
+
+const log = logger.child({ module: 'ControlServer.events' });
 
 /**************************************************************************
  * Internal events received by the control server via the exposed internal
@@ -41,6 +45,9 @@ export const changeConfig = (config: any) => {
   internalEventEmitter.emit(INTERNAL_EVENTS.SERVER.BROADCAST_CONFIG_CHANGE, config);
 };
 
-export const notifyPeerJWS = (peerJWS: any) => {
+export const notifyPeerJWS = (peerJWS?: PeerJWS.JWS[]) => {
+  log.info('notifyPeerJWS with new publicKeys: ', {
+    peerJWS: (peerJWS || []).map(_ => ({ ..._, publicKey: '[REDACTED]' }))
+  });
   internalEventEmitter.emit(INTERNAL_EVENTS.SERVER.BROADCAST_PEER_JWS_CHANGE, peerJWS);
 };

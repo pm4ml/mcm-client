@@ -12,6 +12,7 @@
  ************************************************************************* */
 
 const retry = require('async-retry');
+const stringify = require('safe-stable-stringify')
 const { request } = require('@mojaloop/sdk-standard-components');
 const { AUTH_HEADER, DEFAULT_RETRIES_COUNT } = require('../constants');
 const { JWTSingleton } = require('./jwt');
@@ -83,15 +84,17 @@ class Requests {
                 method,
                 uri,
                 headers,
-                ...(body ? { body: JSON.stringify(body) } : null),
+                ...(body ? { body: stringify(body) } : null),
             };
             this.logger.push({ reqOpts }).debug(`Executing HTTP ${method}`);
 
             try {
-                return throwOrJson(await request({ ...reqOpts, agent: this.agent }));
+                const data = throwOrJson(await request({ ...reqOpts, agent: this.agent }));
+                this.logger.debug(`#sendRequestWithRetry is done: `, { data });
+                return data;
             } catch (error) {
                 const { statusCode } = error?.getData?.().res || error || {};
-                this.logger.push({ error }).error(`Error attempting HTTP ${method} statusCode: ${statusCode}`);
+                this.logger.error(`Error attempting HTTP ${method} statusCode: ${statusCode}`, error);
                 if ([401, 403].includes(statusCode)) {
                     this.logger.info(`Retrying login due to error statusCode: ${statusCode}`);
                     const JWT = new JWTSingleton();

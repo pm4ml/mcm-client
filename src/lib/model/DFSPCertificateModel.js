@@ -23,6 +23,7 @@ class DFSPCertificateModel {
                 'X-DFSP-ID': this._dfspId,
             },
         });
+        this.log = opts.logger.child({ model: this.constructor.name });
     }
 
     /**
@@ -109,6 +110,7 @@ class DFSPCertificateModel {
      */
     async uploadJWS(opts) {
         const url = `/dfsps/${this._dfspId}/jwscerts`;
+        this.log.verbose('sending uploadJWS...', { url })
         return this._mcmServerRequest.post(url, opts);
     }
 
@@ -119,6 +121,7 @@ class DFSPCertificateModel {
      */
     async updateJWS(opts) {
         const url = `/dfsps/${this._dfspId}/jwscerts`;
+        this.log.verbose('sending updateJWS...', { url })
         return this._mcmServerRequest.put(url, opts);
     }
 
@@ -129,6 +132,7 @@ class DFSPCertificateModel {
      */
     async deleteJWS(opts) {
         const url = `/dfsps/${this._dfspId}/jwscerts`;
+        this.log.verbose('sending deleteJWS...', { url })
         return this._mcmServerRequest.delete(url, opts);
     }
 
@@ -139,6 +143,7 @@ class DFSPCertificateModel {
      */
     async uploadExternalDfspJWS(opts) {
         const url = `/external-dfsps/jwscerts`;
+        this.log.verbose('sending uploadExternalDfspJWS...', { url })
         return this._mcmServerRequest.post(url, opts);
     }
 
@@ -147,6 +152,7 @@ class DFSPCertificateModel {
      */
     async getDFSPJWSCertificates() {
         const url = `/dfsps/${this._dfspId}/jwscerts`;
+        this.log.verbose('sending getDFSPJWSCertificates...', { url })
         return this._mcmServerRequest.get(url);
     }
 
@@ -155,6 +161,7 @@ class DFSPCertificateModel {
      */
     async getAllJWSCertificates() {
         const url = `/dfsps/jwscerts`;
+        this.log.verbose('sending getAllJWSCertificates...', { url })
         return this._mcmServerRequest.get(url);
     }
 }
