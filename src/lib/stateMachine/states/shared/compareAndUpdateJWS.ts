@@ -49,7 +49,7 @@ export function compareAndUpdateJWS(
   currentJWS: PeerJwsItem[] | undefined,
   logger: Logger.SdkLogger
 ): CompareJWSResult {
-  const log = logger.child({ step: 'compareAndUpdateJWS' })
+  const log = logger.child({ step: 'compareAndUpdateJWS' });
   const changes = _.differenceWith(
     newJWS,
     currentJWS!,

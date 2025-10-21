@@ -9,8 +9,8 @@
  **************************************************************************/
 
 import { EventEmitter } from 'node:events';
+import { PeerJwsItem } from '../stateMachine/states/shared/types';
 import logger from '../logger';
-import { PeerJWS } from '../stateMachine/states/peerJWS';
 
 const log = logger.child({ module: 'ControlServer.events' });
 
@@ -45,7 +45,7 @@ export const changeConfig = (config: any) => {
   internalEventEmitter.emit(INTERNAL_EVENTS.SERVER.BROADCAST_CONFIG_CHANGE, config);
 };
 
-export const notifyPeerJWS = (peerJWS?: PeerJWS.JWS[]) => {
+export const notifyPeerJWS = (peerJWS?: PeerJwsItem[]) => {
   log.info('notifyPeerJWS with new publicKeys: ', {
     peerJWS: (peerJWS || []).map(_ => ({ ..._, publicKey: '[REDACTED]' }))
   });
