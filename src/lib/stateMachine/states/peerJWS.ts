@@ -11,6 +11,7 @@
 import _ from 'lodash';
 import { AnyEventObject, assign, DoneEventObject, MachineConfig, send } from 'xstate';
 import { PeerJwsItem } from './shared/types';
+import { NoPeerJwsChangesError } from './shared/errors';
 import { compareAndUpdateJWS } from './shared/compareAndUpdateJWS';
 import { MachineOpts } from './MachineOpts';
 import { invokeRetry } from './invokeRetry';
@@ -74,7 +75,11 @@ export namespace PeerJWS {
           onError: {
             target: 'completed',
             actions: [
-              (ctx, event) => opts.logger.warn('failed to compare peer JWS: ', event.data),
+              (ctx, event) => {
+                if (!(event.data instanceof NoPeerJwsChangesError)) {
+                  opts.logger.warn('failed to compare peer JWS: ', event.data)
+                }
+              },
               send('NO_PEER_JWS_CHANGES'),
             ],
           },

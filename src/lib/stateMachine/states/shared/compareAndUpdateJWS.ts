@@ -27,6 +27,7 @@
 
 import _ from 'lodash';
 import { Logger } from '@mojaloop/sdk-standard-components';
+import { NoPeerJwsChangesError } from './errors';
 import { PeerJwsItem } from './types';
 
 interface CompareJWSResult {
@@ -57,9 +58,9 @@ export function compareAndUpdateJWS(
   );
 
   if (changes.length === 0) {
-    const logMsg = 'No changes detected';
-    log.debug(logMsg);
-    throw new Error(logMsg);
+    const err = new NoPeerJwsChangesError();
+    log.debug(err.message);
+    throw err;
   }
 
   // Iterate through changes array and replace those values in the context with the new values
