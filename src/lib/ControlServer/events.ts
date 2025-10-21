@@ -47,7 +47,7 @@ export const changeConfig = (config: any) => {
 
 export const notifyPeerJWS = (peerJWS?: PeerJwsItem[]) => {
   log.info('notifyPeerJWS with new publicKeys: ', {
-    peerJWS: (peerJWS || []).map(_ => ({ ..._, publicKey: '[REDACTED]' }))
+    peerJWS: (peerJWS || []).map(({ createdAt, dfspId, validationState }) => ({ createdAt, dfspId, validationState }))
   });
   internalEventEmitter.emit(INTERNAL_EVENTS.SERVER.BROADCAST_PEER_JWS_CHANGE, peerJWS);
 };

@@ -27,6 +27,7 @@
 
 export type PeerJwsItem = {
   dfspId: string;
-  publicKey: string;
   createdAt: number; // Unix timestamp
+  publicKey: string;
+  validationState?: string;
 };

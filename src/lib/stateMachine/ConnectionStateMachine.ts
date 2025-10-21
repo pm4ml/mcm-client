@@ -119,7 +119,7 @@ class ConnectionStateMachine {
   private needToStoreState(state: State<Context, Event>) {
     const { type = '' } = state?.event || {}
     const isExternal = EXTERNAL_EVENT_TYPES.includes(type)
-    this.log.verbose('isExternal event: ', { isExternal, event: state.event })
+    this.log.debug(`isExternal event: ${isExternal}`, { isExternal, event: state.event })
     return isExternal;
   }
 
