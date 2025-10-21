@@ -96,7 +96,7 @@ export default class Vault {
 
   constructor(private opts: VaultOpts) {
     this.cfg = opts;
-    this.logger = opts.logger;
+    this.logger = opts.logger.child({ component: 'VaultClient' });
   }
 
   private _isTokenError(e: any): boolean {
@@ -320,10 +320,9 @@ export default class Vault {
         method: 'POST',
         json: reqJson,
       };
-      this.logger.verbose(`sending createDFSPServerCert request...`, { options });
 
       const { data } = await this.client.request(options);
-      this.logger.verbose('sending createDFSPServerCert request is done');
+      this.logger.verbose('createDFSPServerCert is done: ', { options });
 
       return {
         intermediateChain: data.ca_chain,
@@ -397,6 +396,7 @@ export default class Vault {
     const keys = forge.pki.rsa.generateKeyPair(this.cfg.keyLength);
     const csr = forge.pki.createCertificationRequest();
     csr.publicKey = keys.publicKey;
+
     if (csrParameters?.subject) {
       csr.setSubject(
         Object.entries(csrParameters.subject).map(([shortName, value]) => ({
@@ -405,6 +405,7 @@ export default class Vault {
         })),
       );
     }
+
     if (csrParameters?.extensions?.subjectAltName) {
       const { dns, ips } = csrParameters.extensions.subjectAltName;
       csr.setExtensions([
@@ -425,6 +426,7 @@ export default class Vault {
     }
 
     csr.sign(keys.privateKey, forge.md.sha256.create());
+    this.logger.verbose('createCSR is done')
 
     return {
       csr: forge.pki.certificationRequestToPem(csr),

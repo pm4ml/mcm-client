@@ -12,7 +12,7 @@ class JWTSingleton {
             return JWTSingleton.instance;
         }
 
-        this._logger = opts.logger;
+        this._logger = opts.logger.child({ component: this.constructor.name });
 
         this._auth = opts.auth;
         if (opts.auth.enabled) {
@@ -103,11 +103,10 @@ class JWTSingleton {
                 method: 'POST',
                 uri: buildUrl(this._hubIamProviderUrl, route),
                 headers,
-                body,
             };
-            this._logger.push({ reqOpts }).verbose('Executing Login...');
+            this._logger.push({ reqOpts }).verbose(`Executing Login  [grant_type: ${body.grant_type}]...`);
 
-            const { statusCode, data } = await request({ ...reqOpts, agent: this.agent });
+            const { statusCode, data } = await request({ ...reqOpts, body, agent: this.agent });
 
             if (statusCode !== 200) {
                 const errMessage = ERROR_MESSAGES.loginErrorInvalidStatusCode;

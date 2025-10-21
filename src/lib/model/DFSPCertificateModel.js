@@ -34,6 +34,7 @@ class DFSPCertificateModel {
      */
     async uploadCSR(opts) {
         const url = `/dfsps/${this._dfspId}/enrollments/inbound`;
+        this.log.verbose('sending uploadCSR request to MCM...', { url })
         return this._mcmServerRequest.post(url, { clientCSR: opts.csr });
     }
 
@@ -44,6 +45,7 @@ class DFSPCertificateModel {
      */
     async signInboundEnrollment(opts) {
         const url = `/dfsps/${this._dfspId}/enrollments/inbound/${opts.inboundEnrollmentId}/sign`;
+        this.log.verbose('sending signInboundEnrollment request to MCM...', { url });
         return this._mcmServerRequest.post(url, {});
     }
 
@@ -54,6 +56,7 @@ class DFSPCertificateModel {
      */
     async getClientCertificate(opts) {
         const url = `/dfsps/${this._dfspId}/enrollments/inbound/${opts.inboundEnrollmentId}`;
+        this.log.verbose('sending getClientCertificate request to MCM...', { url });
         return this._mcmServerRequest.get(url);
     }
 
@@ -63,6 +66,7 @@ class DFSPCertificateModel {
      */
     async getCertificates() {
         const url = `/dfsps/${this._dfspId}/enrollments/inbound`;
+        this.log.verbose('sending getCertificates request to MCM...', { url });
         return this._mcmServerRequest.get(url);
     }
 
@@ -72,6 +76,7 @@ class DFSPCertificateModel {
      */
     async getDFSPCA() {
         const url = `/dfsps/${this._dfspId}/ca`;
+        this.log.verbose('sending getDFSPCA request to MCM...', { url });
         return this._mcmServerRequest.get(url);
     }
 
@@ -82,6 +87,7 @@ class DFSPCertificateModel {
      */
     async uploadDFSPCA(opts) {
         const url = `/dfsps/${this._dfspId}/ca`;
+        this.log.verbose('sending uploadDFSPCA request to MCM...', { url });
         return this._mcmServerRequest.post(url, opts);
     }
 
@@ -90,6 +96,7 @@ class DFSPCertificateModel {
      */
     async getDFSPServerCertificates() {
         const url = `/dfsps/${this._dfspId}/servercerts`;
+        this.log.verbose('sending getDFSPServerCertificates request to MCM...', { url });
         return this._mcmServerRequest.get(url);
     }
 
@@ -100,6 +107,7 @@ class DFSPCertificateModel {
      */
     async uploadServerCertificates(opts) {
         const url = `/dfsps/${this._dfspId}/servercerts`;
+        this.log.verbose('sending uploadServerCertificates request to MCM...', { url });
         return this._mcmServerRequest.post(url, opts);
     }
 
@@ -110,7 +118,7 @@ class DFSPCertificateModel {
      */
     async uploadJWS(opts) {
         const url = `/dfsps/${this._dfspId}/jwscerts`;
-        this.log.verbose('sending uploadJWS...', { url })
+        this.log.verbose('sending uploadJWS request to MCM...', { url });
         return this._mcmServerRequest.post(url, opts);
     }
 
@@ -121,7 +129,7 @@ class DFSPCertificateModel {
      */
     async updateJWS(opts) {
         const url = `/dfsps/${this._dfspId}/jwscerts`;
-        this.log.verbose('sending updateJWS...', { url })
+        this.log.verbose('sending updateJWS request to MCM...', { url });
         return this._mcmServerRequest.put(url, opts);
     }
 
@@ -132,7 +140,7 @@ class DFSPCertificateModel {
      */
     async deleteJWS(opts) {
         const url = `/dfsps/${this._dfspId}/jwscerts`;
-        this.log.verbose('sending deleteJWS...', { url })
+        this.log.verbose('sending deleteJWS request to MCM...', { url });
         return this._mcmServerRequest.delete(url, opts);
     }
 
@@ -143,7 +151,7 @@ class DFSPCertificateModel {
      */
     async uploadExternalDfspJWS(opts) {
         const url = `/external-dfsps/jwscerts`;
-        this.log.verbose('sending uploadExternalDfspJWS...', { url })
+        this.log.verbose('sending uploadExternalDfspJWS request to MCM...', { url });
         return this._mcmServerRequest.post(url, opts);
     }
 
@@ -152,7 +160,7 @@ class DFSPCertificateModel {
      */
     async getDFSPJWSCertificates() {
         const url = `/dfsps/${this._dfspId}/jwscerts`;
-        this.log.verbose('sending getDFSPJWSCertificates...', { url })
+        this.log.verbose('sending getDFSPJWSCertificates request to MCM...', { url });
         return this._mcmServerRequest.get(url);
     }
 
@@ -161,7 +169,7 @@ class DFSPCertificateModel {
      */
     async getAllJWSCertificates() {
         const url = `/dfsps/jwscerts`;
-        this.log.verbose('sending getAllJWSCertificates...', { url })
+        this.log.verbose('sending getAllJWSCertificates request to MCM...', { url });
         return this._mcmServerRequest.get(url);
     }
 }

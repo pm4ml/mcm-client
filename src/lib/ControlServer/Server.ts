@@ -16,6 +16,8 @@ import { getInternalEventEmitter, INTERNAL_EVENTS } from './events';
 
 import { MESSAGE, VERB, ERROR, build, deserialise, getWsIp } from './shared';
 
+const HEARTBEAT_INTERVAL = 30_000;
+
 const ControlServerEventEmitter = getInternalEventEmitter();
 
 
@@ -60,7 +62,7 @@ class Server extends ws.Server {
 
     this.on('error', (err) => {
       this._logger.error('Unhandled websocket error occurred. Shutting down.', err);
-      process.exit(1);
+      process.exit(1); // todo: do we need to process.exit() here?
     });
 
     this.on('connection', (socket, req) => {
@@ -69,7 +71,7 @@ class Server extends ws.Server {
         ip: getWsIp(req),
         remoteAddress: req.socket.remoteAddress,
       } as any);
-      logger.log('Websocket connection received');
+      logger.verbose('Websocket connection received');
       this._clientData.set(socket, { ip: req.connection.remoteAddress, logger, isAlive: true });
 
       socket.on('pong', () => {
@@ -86,7 +88,7 @@ class Server extends ws.Server {
 
       socket.on('message', this._handle(socket, logger));
     });
-    this._logger.info(`ws Control Server is running...`, { addressInfo: this.address() });
+    this._logger.info(`ws Control Server is running...`, { addressInfo: this.address(), HEARTBEAT_INTERVAL });
     this._startHeartbeat();
   }
 
@@ -104,7 +106,7 @@ class Server extends ws.Server {
         }
         client.ping();
       });
-    }, 30000);
+    }, HEARTBEAT_INTERVAL);
   }
 
   private _stopHeartbeat() {
@@ -136,7 +138,7 @@ class Server extends ws.Server {
         logger.push({ data }).warn("Couldn't parse received message");
         client.send(build.ERROR.NOTIFY.JSON_PARSE_ERROR());
       }
-      logger.push({ msg }).log('Handling received message');
+      logger.push({ msg }).debug('Handling received message');
 
       if (!msg) {
         logger.warn('No deserialised WS message');
@@ -228,7 +230,7 @@ class Server extends ws.Server {
       isAlive: data.isAlive,
       readyState: client.readyState,
     }));
-    this._logger.verbose('Connected client details: ', { clientDetails });
+    this._logger.debug('Connected client details: ', { clientDetails });
     return clientDetails;
   }
 
