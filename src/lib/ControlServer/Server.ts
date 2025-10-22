@@ -54,7 +54,7 @@ class Server extends ws.Server {
   constructor(opts: ServerOpts) {
     super({ clientTracking: true, port: opts.port });
 
-    this._logger = opts.logger;
+    this._logger = opts.logger.child({ component: 'ControlServer' });
     this._clientData = new Map();
     this.onRequestConfig = opts.onRequestConfig;
     this.onRequestPeerJWS = opts.onRequestPeerJWS;
