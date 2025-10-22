@@ -12,7 +12,7 @@ import { EventEmitter } from 'node:events';
 import { PeerJwsItem, IConnectorConfig } from '../stateMachine/states/shared/types';
 import logger from '../logger';
 
-const log = logger.child({ module: 'ControlServer.events' });
+const log = logger.child({ component: 'ControlServer.events' });
 
 /**************************************************************************
  * Internal events received by the control server via the exposed internal
@@ -42,7 +42,7 @@ export const getInternalEventEmitter = () => {
 
 export const changeConfig = (config?: IConnectorConfig) => {
   const eventName = INTERNAL_EVENTS.SERVER.BROADCAST_CONFIG_CHANGE
-  log.info(`emit ws server internal event ${eventName}: `, { configKeys: Object.keys(config || {}) });
+  log.info(`emit ws server internal event ${eventName}: `, { configFields: Object.keys(config || {}) });
   internalEventEmitter.emit(eventName, config);
 };
 
