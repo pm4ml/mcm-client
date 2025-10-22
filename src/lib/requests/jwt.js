@@ -104,7 +104,7 @@ class JWTSingleton {
                 uri: buildUrl(this._hubIamProviderUrl, route),
                 headers,
             };
-            this._logger.push({ reqOpts }).verbose(`Executing Login  [grant_type: ${body.grant_type}]...`);
+            this._logger.push({ reqOpts }).verbose('Executing Login...');
 
             const { statusCode, data } = await request({ ...reqOpts, body, agent: this.agent });
 

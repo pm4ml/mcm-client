@@ -31,3 +31,16 @@ export type PeerJwsItem = {
   publicKey: string;
   validationState?: string;
 };
+
+export interface IConnectorConfig {
+  peerJWSKeys?: Record<string, string>;
+  jwsSigningKey?: string;
+  outbound?: {
+    tls: {
+      creds: {
+        cert?: string;
+        key?: string;
+      };
+    };
+  };
+}
