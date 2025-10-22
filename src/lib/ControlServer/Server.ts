@@ -127,7 +127,7 @@ class Server extends ws.Server {
     this._logger.info('Control server shutdown complete');
   }
 
-  _handle(client, logger: Logger.SdkLogger) {
+  _handle(client: ws.WebSocket, logger: Logger.SdkLogger) {
     return (data: any) => {
       // TODO: json-schema validation of received message- should be pretty straight-forward
       // and will allow better documentation of the API
@@ -148,9 +148,11 @@ class Server extends ws.Server {
       switch (msg.msg) {
         case MESSAGE.CONFIGURATION:
           switch (msg.verb) {
-            case VERB.READ:
+            case VERB.READ: {
+              logger.verbose(`received CONFIGURATION.READ ws message with id ${msg.id}`);
               this.onRequestConfig(client);
               break;
+            }
             default:
               client.send(build.ERROR.NOTIFY.UNSUPPORTED_VERB(msg.id));
               break;
@@ -158,9 +160,11 @@ class Server extends ws.Server {
           break;
         case MESSAGE.PEER_JWS:
           switch (msg.verb) {
-            case VERB.READ:
+            case VERB.READ: {
+              logger.verbose(`received PEER_JWS.READ ws message with id ${msg.id}`);
               this.onRequestPeerJWS(client);
               break;
+            }
             case VERB.NOTIFY:
               this.onUploadPeerJWS(msg.data);
               break;
