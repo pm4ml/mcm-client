@@ -149,7 +149,7 @@ class Server extends ws.Server {
         case MESSAGE.CONFIGURATION:
           switch (msg.verb) {
             case VERB.READ: {
-              logger.verbose(`received CONFIGURATION.READ ws message with id ${msg.id}`);
+              logger.verbose(`received ws message CONFIGURATION.READ with id ${msg.id}`);
               this.onRequestConfig(client);
               break;
             }
@@ -161,11 +161,12 @@ class Server extends ws.Server {
         case MESSAGE.PEER_JWS:
           switch (msg.verb) {
             case VERB.READ: {
-              logger.verbose(`received PEER_JWS.READ ws message with id ${msg.id}`);
+              logger.verbose(`received ws message PEER_JWS.READ with id ${msg.id}`);
               this.onRequestPeerJWS(client);
               break;
             }
             case VERB.NOTIFY:
+              logger.verbose(`received ws message PEER_JWS.NOTIFY with id ${msg.id}`);
               this.onUploadPeerJWS(msg.data);
               break;
             default:

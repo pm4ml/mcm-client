@@ -42,13 +42,13 @@ export const getInternalEventEmitter = () => {
 
 export const changeConfig = (config?: IConnectorConfig) => {
   const eventName = INTERNAL_EVENTS.SERVER.BROADCAST_CONFIG_CHANGE
-  log.info(`emit ws server internal event ${eventName}: `, { configFields: Object.keys(config || {}) });
+  log.info(`emit ws internal event ${eventName}: `, { configFields: Object.keys(config || {}) });
   internalEventEmitter.emit(eventName, config);
 };
 
 export const notifyPeerJWS = (peerJWS?: PeerJwsItem[]) => {
   const eventName = INTERNAL_EVENTS.SERVER.BROADCAST_PEER_JWS_CHANGE
-  log.info(`emit ws server internal event ${eventName} with new publicKeys: `, {
+  log.info(`emit ws internal event ${eventName} with new publicKeys: `, {
     peerJWS: (peerJWS || []).map(({ createdAt, dfspId, validationState }) => ({ createdAt, dfspId, validationState }))
   });
   internalEventEmitter.emit(eventName, peerJWS);
