@@ -25,6 +25,7 @@ import {
   ConnectorConfig,
   EndpointConfig,
   ProgressMonitor,
+  PeerJWSNotify,
   UploadPeerJWS,
 } from './states';
 
@@ -39,6 +40,7 @@ type Context = PeerJWS.Context &
   HubCA.Context &
   ConnectorConfig.Context &
   UploadPeerJWS.Context &
+  PeerJWSNotify.Context &
   EndpointConfig.Context &
   ProgressMonitor.Context;
 
@@ -52,6 +54,7 @@ type Event =
   | HubCA.Event
   | ConnectorConfig.Event
   | UploadPeerJWS.Event
+  | PeerJWSNotify.Event
   | EndpointConfig.Event
   | ProgressMonitor.Event;
 
@@ -245,6 +248,7 @@ class ConnectionStateMachine {
           creatingHubClientCert: HubCert.createState<Context>(opts),
           pullingPeerJWS: PeerJWS.createState<Context>(opts),
           uploadingPeerJWS: UploadPeerJWS.createState<Context>(opts),
+          notifyingPeerJWS: PeerJWSNotify.createState<Context>(opts),
           creatingJWS: DfspJWS.createState<Context>(opts),
           endpointConfig: EndpointConfig.createState<Context>(opts),
           connectorConfig: ConnectorConfig.createState<Context>(opts),

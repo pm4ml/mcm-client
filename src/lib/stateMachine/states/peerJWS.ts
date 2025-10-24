@@ -35,10 +35,8 @@ export namespace PeerJWS {
   export const createState = <TContext extends Context>(opts: MachineOpts): MachineConfig<TContext, any, Event> => ({
     id: 'getPeerJWS',
     initial: 'fetchingPeerJWS',
-    on: {
-      REQUEST_PEER_JWS: { target: '.requestPeerJWS', internal: false },
-    },
     states: {
+      idle: {},
       fetchingPeerJWS: {
         entry: send('FETCHING_PEER_JWS'),
         invoke: {
@@ -83,9 +81,12 @@ export namespace PeerJWS {
             return { changes, updatedPeerJWS };
           },
           onDone: {
-            target: 'notifyPeerJWS',
+            target: 'completed',
             actions: [
               assign({ peerJWS: (_context, event) => event.data.updatedPeerJWS }),
+              send((_context, event) => {
+                return { type: 'UPDATE_PEER_JWS', peerJWS: event.data.updatedPeerJWS };
+              }),
               send((_context, event) => {
                 const peerJWSKeys = Object.fromEntries(event.data.updatedPeerJWS.map((e) => [e.dfspId, e.publicKey]));
                 return { type: 'UPDATE_CONNECTOR_CONFIG', config: { peerJWSKeys } };
@@ -95,24 +96,6 @@ export namespace PeerJWS {
           onError: {
             target: 'completed',
             actions: send('NO_PEER_JWS_CHANGES'),
-          },
-        },
-      },
-      notifyPeerJWS: {
-        entry: send('NOTIFYING_PEER_JWS'),
-        invoke: {
-          id: 'notifyPeerJWS',
-          src: (ctx: TContext) =>
-            invokeRetry({
-              id: 'notifyPeerJWS',
-              logger: opts.logger,
-              retryInterval: opts.refreshIntervalSeconds * 1000,
-              machine: 'PEER_JWS',
-              state: 'notifyPeerJWS',
-              service: async () => opts.ControlServer.notifyPeerJWS(ctx.peerJWS),
-            }),
-          onDone: {
-            target: 'completed',
           },
         },
       },
@@ -126,21 +109,6 @@ export namespace PeerJWS {
       retry: {
         after: {
           [opts.refreshIntervalSeconds * 1000]: { target: 'fetchingPeerJWS' },
-        },
-      },
-      requestPeerJWS: {
-        entry: send('NOTIFYING_PEER_JWS'),
-        invoke: {
-          id: 'requestPeerJWS',
-          src: (ctx: TContext) =>
-            invokeRetry({
-              id: 'requestPeerJWS',
-              logger: opts.logger,
-              retryInterval: opts.refreshIntervalSeconds * 1000,
-              machine: 'PEER_JWS',
-              state: 'requestPeerJWS',
-              service: async () => opts.ControlServer.notifyPeerJWS(ctx.peerJWS),
-            }),
         },
       },
     },
