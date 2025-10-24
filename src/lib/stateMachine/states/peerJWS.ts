@@ -36,7 +36,7 @@ export namespace PeerJWS {
     id: 'getPeerJWS',
     initial: 'fetchingPeerJWS',
     on: {
-      REQUEST_PEER_JWS: { target: '.notifyPeerJWS', internal: false },
+      REQUEST_PEER_JWS: { target: '.requestPeerJWS', internal: false },
     },
     states: {
       fetchingPeerJWS: {
@@ -126,6 +126,21 @@ export namespace PeerJWS {
       retry: {
         after: {
           [opts.refreshIntervalSeconds * 1000]: { target: 'fetchingPeerJWS' },
+        },
+      },
+      requestPeerJWS: {
+        entry: send('NOTIFYING_PEER_JWS'),
+        invoke: {
+          id: 'requestPeerJWS',
+          src: (ctx: TContext) =>
+            invokeRetry({
+              id: 'requestPeerJWS',
+              logger: opts.logger,
+              retryInterval: opts.refreshIntervalSeconds * 1000,
+              machine: 'PEER_JWS',
+              state: 'requestPeerJWS',
+              service: async () => opts.ControlServer.notifyPeerJWS(ctx.peerJWS),
+            }),
         },
       },
     },
