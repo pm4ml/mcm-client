@@ -54,7 +54,7 @@ export namespace PeerJWSNotify {
               retryInterval: opts.refreshIntervalSeconds * 1000,
               machine: 'peerJWSNotify',
               state: 'propagatingPeerJWS',
-              service: async () => opts.ControlServer.notifyPeerJWS(ctx.peerJWS),
+              service: async () => opts.ControlServer.notifyPeerJWS(ctx.peerJWS ?? []),
             }),
           onDone: {
             target: 'idle',
