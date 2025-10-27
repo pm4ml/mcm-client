@@ -13,6 +13,7 @@ import { createMachine, interpret, State, StateMachine } from 'xstate';
 import { ActionObject } from 'xstate/lib/types';
 import { inspect } from '@xstate/inspect/lib/server';
 import WebSocket from 'ws';
+import logger from '../logger'
 
 import {
   DfspJWS,
@@ -29,6 +30,7 @@ import {
 } from './states';
 
 import { MachineOpts } from './states/MachineOpts';
+import { EXTERNAL_EVENT_TYPES } from './constants';
 
 type Context = PeerJWS.Context &
   DfspJWS.Context &
@@ -70,6 +72,8 @@ class ConnectionStateMachine {
   private context?: Context;
   private actions: Record<string, ActionType> = {};
 
+  protected log = logger.child({ component: this.constructor.name })
+
   constructor(opts: MachineOpts) {
     this.opts = opts;
     this.serve();
@@ -89,6 +93,16 @@ class ConnectionStateMachine {
   }
 
   private setState(state: State<Context, Event>) {
+    // (?) think if we need to add state format validation
+    const log = this.log.child({ eventType: state.event?.type });
+
+    const needToStore = this.needToStoreState(state);
+    if (!needToStore) {
+      log.verbose('skip setStateMachineState in vault secrets');
+      return;
+    }
+
+    log.info(`setStateMachineState in vault secrets...`);
     this.opts.vault
       .setStateMachineState({
         state,
@@ -97,8 +111,16 @@ class ConnectionStateMachine {
         actions: this.actions,
       })
       .catch((err) => {
-        this.opts.logger.warn('Failed to set state machine state', err);
+        log.error('error in setStateMachineState to vault: ', err);
+        // (?) think what to do with this error
       });
+  }
+
+  private needToStoreState(state: State<Context, Event>) {
+    const { type = '' } = state?.event || {}
+    const isExternal = EXTERNAL_EVENT_TYPES.includes(type)
+    this.log.debug(`isExternal event: ${isExternal}`, { isExternal, event: state.event })
+    return isExternal;
   }
 
   private updateActions(acts: Array<ActionType>) {
@@ -261,7 +283,7 @@ class ConnectionStateMachine {
           ...HubCert.createGuards<Context>(),
           ...HubCA.createGuards<Context>(),
           ...EndpointConfig.createGuards<Context>(opts),
-          ...ProgressMonitor.createGuards<Context>(),
+          ...ProgressMonitor.createGuards<Context>(opts),
         },
         actions: {
           // ...ConnectorConfig.createActions<Context>(),

@@ -99,7 +99,7 @@ export const invokeRetry = (opts: InvokeRetryOpts) =>
         },
       },
       actions: {
-        logError: (ctx, event) => opts.logger.push({ error: event.data })?.log(`Error invoking service ${opts.id}`),
+        logError: (ctx, event) => opts.logger.push({ error: event.data })?.warn(`Error invoking service ${opts.id}`),
       },
     }
   );

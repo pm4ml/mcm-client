@@ -9,28 +9,27 @@
  **************************************************************************/
 
 import Vault from '../../../../lib/vault';
-import config from './config';
+import logger from '../../../../lib/logger';
 import * as MCMClient from '../../../../lib/model';
 import * as ControlServer from '../../../../lib/ControlServer';
-import SDKStandardComponents from '@mojaloop/sdk-standard-components';
+import config from './config';
 
 jest.mock('../../../../lib/vault');
 jest.mock('../../../../lib/model');
 jest.mock('../../../../lib/ControlServer');
-jest.mock('@mojaloop/sdk-standard-components');
 
 export const createMachineOpts = () => {
   const vaultObj = new Vault({
     ...config.vault,
     commonName: config.mojaloopConnectorFQDN,
-    logger: new SDKStandardComponents.Logger.SdkLogger(),
+    logger,
   });
   const vault = jest.mocked(vaultObj);
 
   const modelOpts = {
     dfspId: config.dfspId,
     hubEndpoint: config.mcmServerEndpoint,
-    logger: new SDKStandardComponents.Logger.SdkLogger(),
+    logger,
   };
 
   const ctx = {
@@ -47,7 +46,7 @@ export const createMachineOpts = () => {
     config: cfg,
     port: config.stateMachineDebugPort,
     ...ctx,
-    logger: new SDKStandardComponents.Logger.SdkLogger(),
+    logger,
     vault,
     ControlServer: jest.mocked(ControlServer),
     certManager: undefined,

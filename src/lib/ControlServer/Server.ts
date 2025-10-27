@@ -16,6 +16,8 @@ import { getInternalEventEmitter, INTERNAL_EVENTS } from './events';
 
 import { MESSAGE, VERB, ERROR, build, deserialise, getWsIp } from './shared';
 
+const HEARTBEAT_INTERVAL = 30_000;
+
 const ControlServerEventEmitter = getInternalEventEmitter();
 
 
@@ -52,7 +54,7 @@ class Server extends ws.Server {
   constructor(opts: ServerOpts) {
     super({ clientTracking: true, port: opts.port });
 
-    this._logger = opts.logger;
+    this._logger = opts.logger.child({ component: 'ControlServer' });
     this._clientData = new Map();
     this.onRequestConfig = opts.onRequestConfig;
     this.onRequestPeerJWS = opts.onRequestPeerJWS;
@@ -60,7 +62,7 @@ class Server extends ws.Server {
 
     this.on('error', (err) => {
       this._logger.error('Unhandled websocket error occurred. Shutting down.', err);
-      process.exit(1);
+      process.exit(1); // todo: do we need to process.exit() here?
     });
 
     this.on('connection', (socket, req) => {
@@ -69,7 +71,7 @@ class Server extends ws.Server {
         ip: getWsIp(req),
         remoteAddress: req.socket.remoteAddress,
       } as any);
-      logger.log('Websocket connection received');
+      logger.verbose('Websocket connection received');
       this._clientData.set(socket, { ip: req.connection.remoteAddress, logger, isAlive: true });
 
       socket.on('pong', () => {
@@ -86,7 +88,7 @@ class Server extends ws.Server {
 
       socket.on('message', this._handle(socket, logger));
     });
-    this._logger.info(`ws Control Server is running...`, { addressInfo: this.address() });
+    this._logger.info(`ws Control Server is running...`, { addressInfo: this.address(), HEARTBEAT_INTERVAL });
     this._startHeartbeat();
   }
 
@@ -104,7 +106,7 @@ class Server extends ws.Server {
         }
         client.ping();
       });
-    }, 30000);
+    }, HEARTBEAT_INTERVAL);
   }
 
   private _stopHeartbeat() {
@@ -125,7 +127,7 @@ class Server extends ws.Server {
     this._logger.info('Control server shutdown complete');
   }
 
-  _handle(client, logger: Logger.SdkLogger) {
+  _handle(client: ws.WebSocket, logger: Logger.SdkLogger) {
     return (data: any) => {
       // TODO: json-schema validation of received message- should be pretty straight-forward
       // and will allow better documentation of the API
@@ -136,7 +138,7 @@ class Server extends ws.Server {
         logger.push({ data }).warn("Couldn't parse received message");
         client.send(build.ERROR.NOTIFY.JSON_PARSE_ERROR());
       }
-      logger.push({ msg }).log('Handling received message');
+      logger.push({ msg }).debug('Handling received message');
 
       if (!msg) {
         logger.warn('No deserialised WS message');
@@ -146,9 +148,11 @@ class Server extends ws.Server {
       switch (msg.msg) {
         case MESSAGE.CONFIGURATION:
           switch (msg.verb) {
-            case VERB.READ:
+            case VERB.READ: {
+              logger.verbose(`received ws message CONFIGURATION.READ with id ${msg.id}`);
               this.onRequestConfig(client);
               break;
+            }
             default:
               client.send(build.ERROR.NOTIFY.UNSUPPORTED_VERB(msg.id));
               break;
@@ -156,10 +160,13 @@ class Server extends ws.Server {
           break;
         case MESSAGE.PEER_JWS:
           switch (msg.verb) {
-            case VERB.READ:
+            case VERB.READ: {
+              logger.verbose(`received ws message PEER_JWS.READ with id ${msg.id}`);
               this.onRequestPeerJWS(client);
               break;
+            }
             case VERB.NOTIFY:
+              logger.verbose(`received ws message PEER_JWS.NOTIFY with id ${msg.id}`);
               this.onUploadPeerJWS(msg.data);
               break;
             default:
@@ -228,7 +235,7 @@ class Server extends ws.Server {
       isAlive: data.isAlive,
       readyState: client.readyState,
     }));
-    this._logger.verbose('Connected client details: ', { clientDetails });
+    this._logger.debug('Connected client details: ', { clientDetails });
     return clientDetails;
   }
 

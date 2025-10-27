@@ -8,30 +8,19 @@
  *       Yevhen Kyriukha <yevhen.kyriukha@modusbox.com>                   *
  ************************************************************************* */
 
+import _ from 'lodash';
 import { AnyEventObject, assign, DoneEventObject, MachineConfig } from 'xstate';
+import { IConnectorConfig } from './shared/types';
 import { MachineOpts } from './MachineOpts';
 import { invokeRetry } from './invokeRetry';
-import _ from 'lodash';
 
 export namespace ConnectorConfig {
-  interface ConnectorConfig {
-    peerJWSKeys?: Record<string, string>;
-    jwsSigningKey?: string;
-    outbound?: {
-      tls: {
-        creds: {
-          cert?: string;
-          key?: string;
-        };
-      };
-    };
-  }
   export interface Context {
-    connectorConfig?: ConnectorConfig;
+    connectorConfig?: IConnectorConfig;
   }
 
   type UpdateAction =
-    | { type: 'UPDATE_CONNECTOR_CONFIG'; config: ConnectorConfig }
+    | { type: 'UPDATE_CONNECTOR_CONFIG'; config: IConnectorConfig }
     | { type: 'REQUEST_CONNECTOR_CONFIG' };
 
   export type Event = UpdateAction | DoneEventObject;

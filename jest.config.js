@@ -41,6 +41,11 @@ const config = {
     }
   },
 
+  // Module name mapper for path aliases
+  moduleNameMapper: {
+    '^@app/(.*)$': '<rootDir>/dist/$1'
+  },
+
   // The test environment that will be used for testing
   testEnvironment: "jest-environment-node",
 

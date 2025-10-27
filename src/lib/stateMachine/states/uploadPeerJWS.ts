@@ -9,12 +9,13 @@
  ************************************************************************* */
 
 import { AnyEventObject, assign, DoneEventObject, MachineConfig, send } from 'xstate';
+import { PeerJwsItem } from './shared/types';
+import { NoPeerJwsChangesError } from './shared/errors';
+import { compareAndUpdateJWS } from './shared/compareAndUpdateJWS';
 import { MachineOpts } from './MachineOpts';
 import { invokeRetry } from './invokeRetry';
-import { PeerJWS } from './peerJWS';
-import _ from 'lodash';
 
-type JWS = PeerJWS.JWS;
+type JWS = PeerJwsItem;
 
 export namespace UploadPeerJWS {
   export interface Context {
@@ -43,35 +44,23 @@ export namespace UploadPeerJWS {
       comparePeerJWS: {
         entry: send('COMPARING_UPLOAD_PEER_JWS'),
         invoke: {
-          src: async (context, event: AnyEventObject) => {
-            const peerJWS = event.data;
-            const changes = _.differenceWith(
-              peerJWS as JWS[],
-              context.peerJWS!,
-              (a, b) => a.dfspId === b.dfspId && a.createdAt <= b.createdAt
-            );
-            if (changes.length === 0) {
-              throw new Error('No changes detected');
-            }
-            // Iterate through changes array and replace those values in the context with the new values
-            // Clone the context.peerJWS array
-            const updatedPeerJWS = context.peerJWS ? _.cloneDeep(context.peerJWS) : [];
-
-            changes.forEach((change) => {
-              const index = updatedPeerJWS!.findIndex((jws) => jws.dfspId === change.dfspId);
-              if (index === -1) {
-                updatedPeerJWS!.push(change);
-              } else {
-                updatedPeerJWS![index] = change;
-              }
-            });
-            return { changes, updatedPeerJWS };
-          },
+          src: async (context, event: AnyEventObject) => compareAndUpdateJWS(
+            event.data,
+            context.peerJWS,
+            opts.logger.child({ machine: 'UPLOAD_PEER_JWS' })
+          ),
           onDone: {
             target: 'uploadingPeerJWS',
           },
           onError: {
             target: 'idle',
+            actions: [
+              (ctx, event) => {
+                if (!(event.data instanceof NoPeerJwsChangesError)) {
+                  opts.logger.warn('failed to compare peer JWS during upload: ', event.data)
+                }
+              },
+            ],
           },
         },
       },
@@ -87,6 +76,7 @@ export namespace UploadPeerJWS {
               machine: 'UPLOAD_PEER_JWS',
               state: 'uploadingPeerJWS',
               service: async () => {
+                const log = opts.logger.child({ machine: 'UPLOAD_PEER_JWS', state: 'uploadingPeerJWS' });
                 const changesToUpload = event.data.changes.map(({ dfspId, publicKey, createdAt }) => {
                   return {
                     dfspId,
@@ -96,8 +86,10 @@ export namespace UploadPeerJWS {
                 });
                 try {
                   await opts.dfspCertificateModel.uploadExternalDfspJWS(changesToUpload);
+                  log.verbose('uploadingPeerJWS is done');
                   return event.data;
                 } catch (error) {
+                  log.error('error in uploadingPeerJWS: ', error);
                   throw error;
                 }
               },

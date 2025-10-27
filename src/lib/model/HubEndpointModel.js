@@ -11,7 +11,6 @@
  *       Yevhen Kyriukha - yevhen.kyriukha@modusbox.com                   *
  ************************************************************************* */
 
-const util = require('util');
 const { Requests } = require('../requests');
 
 class HubEndpointModel {
