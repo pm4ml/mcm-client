@@ -98,7 +98,7 @@ class ConnectionStateMachine {
 
     const needToStore = this.needToStoreState(state);
     if (!needToStore) {
-      log.info('skip setStateMachineState in vault secrets');
+      log.verbose('skip setStateMachineState in vault secrets');
       return;
     }
 
@@ -117,9 +117,9 @@ class ConnectionStateMachine {
   }
 
   private needToStoreState(state: State<Context, Event>) {
-    const { type = '' } = state.event || {}
+    const { type = '' } = state?.event || {}
     const isExternal = EXTERNAL_EVENT_TYPES.includes(type)
-    this.log.verbose('isExternal event: ', { isExternal, event: state.event })
+    this.log.debug(`isExternal event: ${isExternal}`, { isExternal, event: state.event })
     return isExternal;
   }
 

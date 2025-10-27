@@ -8,17 +8,16 @@
  *       Yevhen Kyriukha <yevhen.kyriukha@modusbox.com>                   *
  **************************************************************************/
 
+import _ from 'lodash';
 import { AnyEventObject, assign, DoneEventObject, MachineConfig, send } from 'xstate';
+import { PeerJwsItem } from './shared/types';
+import { NoPeerJwsChangesError } from './shared/errors';
+import { compareAndUpdateJWS } from './shared/compareAndUpdateJWS';
 import { MachineOpts } from './MachineOpts';
 import { invokeRetry } from './invokeRetry';
-import _ from 'lodash';
 
 export namespace PeerJWS {
-  export type JWS = {
-    dfspId: string;
-    publicKey: string;
-    createdAt: number; // Unix timestamp
-  };
+  export type JWS = PeerJwsItem;
 
   export type Context = {
     peerJWS?: JWS[];
@@ -58,30 +57,11 @@ export namespace PeerJWS {
       comparePeerJWS: {
         entry: send('COMPARING_PEER_JWS'),
         invoke: {
-          src: async (context, event: AnyEventObject) => {
-            const peerJWS = event.data;
-            const changes = _.differenceWith(
-              peerJWS as JWS[],
-              context.peerJWS!,
-              (a, b) => a.dfspId === b.dfspId && a.createdAt <= b.createdAt
-            );
-            if (changes.length === 0) {
-              throw new Error('No changes detected');
-            }
-            // Iterate through changes array and replace those values in the context with the new values
-            // Clone the context.peerJWS array
-            const updatedPeerJWS = context.peerJWS ? _.cloneDeep(context.peerJWS) : [];
-
-            changes.forEach((change) => {
-              const index = updatedPeerJWS!.findIndex((jws) => jws.dfspId === change.dfspId);
-              if (index === -1) {
-                updatedPeerJWS!.push(change);
-              } else {
-                updatedPeerJWS![index] = change;
-              }
-            });
-            return { changes, updatedPeerJWS };
-          },
+          src: async (context, event: AnyEventObject) => compareAndUpdateJWS(
+            event.data,
+            context.peerJWS,
+            opts.logger.child({ machine: 'PEER_JWS' })
+          ),
           onDone: {
             target: 'notifyPeerJWS',
             actions: [
@@ -94,7 +74,14 @@ export namespace PeerJWS {
           },
           onError: {
             target: 'completed',
-            actions: send('NO_PEER_JWS_CHANGES'),
+            actions: [
+              (ctx, event) => {
+                if (!(event.data instanceof NoPeerJwsChangesError)) {
+                  opts.logger.warn('failed to compare peer JWS: ', event.data)
+                }
+              },
+              send('NO_PEER_JWS_CHANGES'),
+            ],
           },
         },
       },

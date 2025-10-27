@@ -14,6 +14,7 @@
 const http = require('http');
 const https = require('https');
 const util = require('util');
+const stringify = require('safe-stable-stringify')
 const { CONTENT_TYPES, ERROR_MESSAGES } = require('../constants');
 
 const respErrSym = Symbol('ResponseErrorDataSym');
@@ -36,7 +37,7 @@ class HTTPResponseError extends Error {
     }
 
     toJSON() {
-        return JSON.stringify(this[respErrSym]);
+        return stringify(this[respErrSym]);
     }
 }
 
