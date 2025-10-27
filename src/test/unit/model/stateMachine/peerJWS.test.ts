@@ -84,7 +84,6 @@ describe('PeerJWS', () => {
       testfsp1JWS,
       testfsp2JWS,
     ]);
-    opts.ControlServer.notifyPeerJWS.mockImplementation(async () => {});
     // No changes
     await waitFor(service, (state) => state.matches('pullingPeerJWS.fetchingPeerJWS'));
     await waitFor(service, (state) => state.matches('pullingPeerJWS.retry'));
@@ -100,7 +99,6 @@ describe('PeerJWS', () => {
       testfsp3JWS,
       testfsp4JWS,
     ]);
-    opts.ControlServer.notifyPeerJWS.mockImplementation(async () => {});
 
     await waitFor(service, (state) => state.matches('pullingPeerJWS.fetchingPeerJWS'));
     await waitFor(service, (state) => state.matches('pullingPeerJWS.retry'));
@@ -127,7 +125,6 @@ describe('PeerJWS', () => {
         publicKey: 'TEST KEY 4 OLD',
       },
     ]);
-    opts.ControlServer.notifyPeerJWS.mockImplementation(async () => {});
 
     await waitFor(service, (state) => state.matches('pullingPeerJWS.fetchingPeerJWS'));
     await waitFor(service, (state) => state.matches('pullingPeerJWS.retry'));
