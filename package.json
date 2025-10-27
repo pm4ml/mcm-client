@@ -1,6 +1,6 @@
 {
   "name": "@pm4ml/mcm-client",
-  "version": "3.10.1-snapshot.15",
+  "version": "3.10.1",
   "description": "Client service for Connection Manager API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -28,6 +28,7 @@
     "test": "jest --ci --reporters=default --reporters=jest-junit --env=node dist/test/unit",
     "test:unit:ts": "jest --config=jest.config.ts.js",
     "test:int": "printf '\\033[0;31m!!! No integration tests !!!\\033[0m\\n'",
+    "release": "npx standard-version --no-verify --releaseCommitMessageFormat 'chore(release): {{currentTag}} [skip ci]'",
     "snapshot": "npx standard-version --no-verify --skip.changelog --prerelease snapshot --releaseCommitMessageFormat 'ci(snapshot): {{currentTag}}'",
     "prepublishOnly": "tsc",
     "dep:check": "npx ncu -e 2",
