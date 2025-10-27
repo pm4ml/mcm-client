@@ -12,7 +12,7 @@ class JWTSingleton {
             return JWTSingleton.instance;
         }
 
-        this._logger = opts.logger;
+        this._logger = opts.logger.child({ component: this.constructor.name });
 
         this._auth = opts.auth;
         if (opts.auth.enabled) {
@@ -53,12 +53,12 @@ class JWTSingleton {
 
     async refreshAccessToken() {
         if (!this._auth.enabled) {
-            this._logger.warn('Token refresh not possible - auth disabled');
+            this._logger.warn('refresh accessToken not possible - auth disabled');
             return null;
         }
 
         if (!this._refreshToken) {
-            this._logger.warn('Token refresh not possible - no refresh token available, falling back to full login');
+            this._logger.info('refresh accessToken not possible - no refresh token available, falling back to full login');
             return this.login();
         }
 
@@ -103,11 +103,10 @@ class JWTSingleton {
                 method: 'POST',
                 uri: buildUrl(this._hubIamProviderUrl, route),
                 headers,
-                body,
             };
             this._logger.push({ reqOpts }).verbose('Executing Login...');
 
-            const { statusCode, data } = await request({ ...reqOpts, agent: this.agent });
+            const { statusCode, data } = await request({ ...reqOpts, body, agent: this.agent });
 
             if (statusCode !== 200) {
                 const errMessage = ERROR_MESSAGES.loginErrorInvalidStatusCode;
