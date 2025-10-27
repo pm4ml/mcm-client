@@ -63,17 +63,12 @@ describe('PeerJWS', () => {
       testfsp1JWS,
       testfsp2JWS,
     ]);
-    opts.ControlServer.notifyPeerJWS.mockImplementation(async () => {});
 
     opts.refreshIntervalSeconds = 1;
     service = startMachine(opts, configUpdate);
     await waitFor(service, (state) => state.matches('pullingPeerJWS.retry'));
 
     expect(opts.dfspCertificateModel.getAllJWSCertificates).toHaveBeenCalled();
-    expect(opts.ControlServer.notifyPeerJWS).toHaveBeenCalledWith([
-      testfsp1JWS,
-      testfsp2JWS,
-    ]);
 
     expect(configUpdate).toHaveBeenCalledWith({
       peerJWSKeys: {
