@@ -325,7 +325,7 @@ export default class Vault {
       this.logger.verbose('createDFSPServerCert is done: ', { options });
 
       return {
-        intermediateChain: data.ca_chain,
+        intermediateChain: Array.isArray(data.ca_chain) ? data.ca_chain.join('\n') : data.ca_chain,
         rootCertificate: data.issuing_ca,
         serverCertificate: data.certificate,
         privateKey: data.private_key,
