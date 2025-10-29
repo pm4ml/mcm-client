@@ -56,11 +56,13 @@ export namespace ProgressMonitor {
 
   // CSI-1865: Only track meaningful external state changes (completion events)
   // Note: Error events handled separately via FAILED event handler
-  const eventToProgressMap: { [key: string]: { machine: MachineName; state: ProgressState.COMPLETED } } = {
+  const eventToProgressMap: { [key: string]: { machine: MachineName; state: ProgressState } } = {
     NEW_HUB_CA_FETCHED: { machine: MachineName.HUB_CA, state: ProgressState.COMPLETED },
     DFSP_CA_PROPAGATED: { machine: MachineName.DFSP_CA, state: ProgressState.COMPLETED },
     DFSP_CLIENT_CERT_CONFIGURED: { machine: MachineName.DFSP_CLIENT_CERT, state: ProgressState.COMPLETED },
     DFSP_SERVER_CERT_CONFIGURED: { machine: MachineName.DFSP_SERVER_CERT, state: ProgressState.COMPLETED },
+    DFSP_SERVER_CERT_EXPIRING: { machine: MachineName.DFSP_SERVER_CERT, state: ProgressState.IN_PROGRESS },
+    DFSP_SERVER_CERT_EXPIRED: { machine: MachineName.DFSP_SERVER_CERT, state: ProgressState.IN_ERROR },
     HUB_CLIENT_CERT_SIGNED: { machine: MachineName.HUB_CERT, state: ProgressState.COMPLETED },
     PEER_JWS_CONFIGURED: { machine: MachineName.PEER_JWS, state: ProgressState.COMPLETED },
     DFSP_JWS_PROPAGATED: { machine: MachineName.DFSP_JWS, state: ProgressState.COMPLETED },
