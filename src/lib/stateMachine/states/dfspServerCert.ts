@@ -71,12 +71,12 @@ export namespace DfspServerCert {
             }),
           onDone: [
             {
-              target: 'expiringDfspServerCert',
-              cond: 'isDfspServerCertExpiring',
-            },
-            {
               target: 'expiredDfspServerCert',
               cond: 'isDfspServerCertExpired',
+            },
+            {
+              target: 'expiringDfspServerCert',
+              cond: 'isDfspServerCertExpiring',
             },
             {
               target: 'scheduledExpiryCheck',
