@@ -37,7 +37,9 @@ export namespace DfspServerCert {
     | { type: 'RENEWING_MANAGED_DFSP_SERVER_CERT' }
     | { type: 'CREATING_DFSP_SERVER_CERT' }
     | { type: 'UPLOADING_DFSP_SERVER_CERT_TO_HUB' }
-    | { type: 'CHECKING_DFSP_SERVER_CERT' };
+    | { type: 'CHECKING_DFSP_SERVER_CERT' }
+    | { type: 'DFSP_SERVER_CERT_EXPIRING' }
+    | { type: 'DFSP_SERVER_CERT_EXPIRED' };
 
   export const createState = <TContext extends Context>(opts: MachineOpts): MachineConfig<TContext, any, Event> => ({
     id: 'dfspServerCert',
