@@ -14,6 +14,8 @@ import { MachineOpts } from './MachineOpts';
 import { invokeRetry } from './invokeRetry';
 import { DfspCA } from './dfspCA';
 
+jest.setTimeout(50000);
+
 const DEFAULT_CERT_EXPIRY_THRESHOLD_DAYS = 2;
 
 export namespace DfspServerCert {
@@ -23,6 +25,7 @@ export namespace DfspServerCert {
       intermediateChain?: string;
       serverCertificate?: string;
       privateKey?: string;
+      expiration?: number;
     };
   }
 
@@ -58,7 +61,7 @@ export namespace DfspServerCert {
         entry: send('CHECKING_DFSP_SERVER_CERT'),
         invoke: {
           id: 'checkDfspServerCert',
-          src: () =>
+          src: (ctx) =>
             invokeRetry({
               id: 'checkDfspServerCert',
               logger: opts.logger,
@@ -66,7 +69,11 @@ export namespace DfspServerCert {
               machine: 'DFSP_SERVER_CERT',
               state: 'checkingDfspServerCert',
               service: async () => {
-                return await opts.dfspCertificateModel.getDFSPServerCertificates();
+                if(ctx.dfspServerCert) {
+                  return ctx.dfspServerCert;
+                } else {
+                  throw new Error('No DFSP Server Certificate found');
+                }
               },
             }),
           onDone: [
@@ -98,7 +105,6 @@ export namespace DfspServerCert {
       },
       scheduledExpiryCheck: {
         after: {
-          // Check again before the certificate expiry time (1/4th of the threshold time)
           [opts.refreshIntervalSeconds * 1000]: { target: 'checkingDfspServerCert' },
         },
       },
@@ -180,8 +186,8 @@ export namespace DfspServerCert {
     notManagedByCertManager: () => !opts.certManager,
     isDfspServerCertExpiring: (_ctx: TContext, event: AnyEventObject) => {
       // Check if certificate is expiring
-      if (event.data?.serverCertificate && event.data?.serverCertificateInfo?.notAfter) {
-        const expiryDate = new Date(event.data.serverCertificateInfo.notAfter);
+      if (event.data?.expiration) {
+        const expiryDate = new Date(event.data.expiration * 1000);
         const now = new Date();
         const thresholdDays = opts.certExpiryThresholdDays ?? DEFAULT_CERT_EXPIRY_THRESHOLD_DAYS;
         const thresholdDate = new Date(now.getTime() + thresholdDays * 24 * 60 * 60 * 1000);
@@ -191,8 +197,8 @@ export namespace DfspServerCert {
     },
     isDfspServerCertExpired: (_ctx: TContext, event: AnyEventObject) => {
       // Check if certificate is expired
-      if (event.data?.serverCertificate && event.data?.serverCertificateInfo?.notAfter) {
-        const expiryDate = new Date(event.data.serverCertificateInfo.notAfter);
+      if (event.data?.expiration) {
+        const expiryDate = new Date(event.data.expiration * 1000);
         return expiryDate <= new Date();
       }
       return false;

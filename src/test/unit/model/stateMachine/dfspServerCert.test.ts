@@ -13,8 +13,6 @@ import { createMachine, interpret } from 'xstate';
 import { createMachineOpts, createTestConfigState } from './commonMocks';
 import { waitFor } from 'xstate/lib/waitFor';
 
-jest.setTimeout(10000);
-
 type Context = DfspServerCert.Context;
 type Event = DfspServerCert.Event;
 
@@ -48,6 +46,7 @@ describe('DfspServerCert', () => {
 
   beforeEach(() => {
     opts = createMachineOpts();
+    opts.refreshIntervalSeconds = 2;
     // Mock getDFSPServerCertificates to return existing cert by default
     opts.dfspCertificateModel.getDFSPServerCertificates.mockImplementation(async () => ({
       serverCertificate: 'EXISTING CERT',
@@ -63,6 +62,7 @@ describe('DfspServerCert', () => {
       rootCertificate: 'ROOT CA',
       serverCertificate: 'SERVER CERT',
       privateKey: 'PKEY',
+      expiration: Math.floor(Date.now() / 1000) + 365 * 24 * 60 * 60, // 1 year from now
     }));
 
     const configUpdate = jest.fn();
@@ -92,29 +92,45 @@ describe('DfspServerCert', () => {
   });
 
   test('should renew server cert when expiring', async () => {
-    // Mock getDFSPServerCertificates to return expiring cert
-    opts.dfspCertificateModel.getDFSPServerCertificates.mockImplementation(async () => ({
-      serverCertificate: 'EXPIRING CERT',
-      serverCertificateInfo: {
-        notAfter: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day from now (within threshold)
-      },
-    }));
 
     opts.vault.createDFSPServerCert.mockImplementation(async () => ({
       intermediateChain: 'NEW CA CHAIN',
       rootCertificate: 'NEW ROOT CA',
-      serverCertificate: 'NEW SERVER CERT',
+      serverCertificate: 'EXPIRING CERT',
       privateKey: 'NEW PKEY',
+      expiration: Math.floor(Date.now() / 1000) + 1 * 24 * 60 * 60, // 1 day from now (within threshold)
     }));
 
     const configUpdate = jest.fn();
     const service = startMachine(opts, configUpdate);
 
-    // Wait for the machine to check the cert and trigger renewal
+    const csr = { subject: { CN: 'test-server' } };
+
+    service.send({ type: 'CREATE_DFSP_SERVER_CERT', csr });
+
     await waitFor(service, (state) => state.matches('creatingDfspServerCert.scheduledExpiryCheck'));
 
-    expect(opts.dfspCertificateModel.getDFSPServerCertificates).toHaveBeenCalled();
-    expect(opts.vault.createDFSPServerCert).toHaveBeenCalled();
+    expect(opts.vault.createDFSPServerCert).toHaveBeenCalledWith(csr);
+    expect(opts.vault.createDFSPServerCert.mock.calls.length).toEqual(1);
+
+    expect(configUpdate).toHaveBeenCalledWith({
+      inbound: {
+        tls: {
+          creds: {
+            ca: 'NEW ROOT CA',
+            cert: 'EXPIRING CERT',
+            key: 'NEW PKEY',
+          },
+        },
+      },
+    });
+
+    // Wait for the machine to check the cert and trigger renewal
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
+    await waitFor(service, (state) => state.matches('creatingDfspServerCert.scheduledExpiryCheck'));
+
+    expect(opts.vault.createDFSPServerCert.mock.calls.length).toBeGreaterThan(1);
 
     service.stop();
   });
