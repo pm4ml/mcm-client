@@ -14,8 +14,6 @@ import { MachineOpts } from './MachineOpts';
 import { invokeRetry } from './invokeRetry';
 import { DfspCA } from './dfspCA';
 
-jest.setTimeout(50000);
-
 const DEFAULT_CERT_EXPIRY_THRESHOLD_DAYS = 2;
 
 export namespace DfspServerCert {
