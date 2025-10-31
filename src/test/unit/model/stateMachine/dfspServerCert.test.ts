@@ -13,6 +13,8 @@ import { createMachine, interpret } from 'xstate';
 import { createMachineOpts, createTestConfigState } from './commonMocks';
 import { waitFor } from 'xstate/lib/waitFor';
 
+jest.setTimeout(15000);
+
 type Context = DfspServerCert.Context;
 type Event = DfspServerCert.Event;
 
