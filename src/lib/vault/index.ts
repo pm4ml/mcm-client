@@ -329,6 +329,7 @@ export default class Vault {
         rootCertificate: data.issuing_ca,
         serverCertificate: data.certificate,
         privateKey: data.private_key,
+        expiration: data.expiration,
       };
     });
   }
