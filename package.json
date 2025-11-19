@@ -2,6 +2,7 @@
   "name": "@mojaloop/mcm-client",
   "version": "4.0.1-snapshot.0",
   "description": "Client service for Connection Manager API",
+  "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "author": "Yevhen Kyriukha, ModusBox Inc.",
