@@ -32,6 +32,7 @@
     "test:unit:ts": "jest --config=jest.config.ts.js",
     "test:xunit": "npm run test:unit:ts",
     "test:int": "printf '\\033[0;31m!!! No integration tests !!!\\033[0m\\n'",
+    "test:coverage-check": "true",
     "release": "npx standard-version --no-verify --releaseCommitMessageFormat 'chore(release): {{currentTag}} [skip ci]'",
     "snapshot": "npx standard-version --no-verify --skip.changelog --prerelease snapshot --releaseCommitMessageFormat 'ci(snapshot): {{currentTag}}'",
     "prepublishOnly": "tsc",
