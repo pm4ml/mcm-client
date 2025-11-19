@@ -1,5 +1,5 @@
 {
-  "name": "@pm4ml/mcm-client",
+  "name": "@mojaloop/mcm-client",
   "version": "4.0.0",
   "description": "Client service for Connection Manager API",
   "main": "dist/index.js",
@@ -12,7 +12,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/pm4ml/mcm-client.git"
+    "url": "git://github.com/mojaloop/mcm-client.git"
   },
   "files": [
     "dist"
