@@ -5,13 +5,13 @@ TypeScript client for managing certificates and configuration with the Mojaloop 
 ## Installation
 
 ```bash
-npm install @pm4ml/mcm-client
+npm install @mojaloop/mcm-client
 ```
 
 ## Usage
 
 ```javascript
-const { ConnectionStateMachine, Vault } = require('@pm4ml/mcm-client');
+const { ConnectionStateMachine, Vault } = require('@mojaloop/mcm-client');
 
 const vault = new Vault({
   endpoint: 'https://vault.example.com',

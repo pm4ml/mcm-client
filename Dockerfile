@@ -1,22 +1,22 @@
-FROM node:22-alpine as builder
+FROM node:lts-alpine AS builder
 
 RUN apk add --no-cache git python3 build-base
 
 EXPOSE 3000
 
-WORKDIR ~/src/
+WORKDIR /src
 
 # This is super-ugly, but it means we don't have to re-run npm install every time any of the source
 # files change- only when any dependencies change- which is a superior developer experience when
 # relying on docker-compose.
-COPY ./src/package.json ./package.json
-COPY ./src/package-lock.json ./package-lock.json
+COPY ./package.json ./package.json
+COPY ./package-lock.json ./package-lock.json
 COPY ./src/lib/log/package.json ./lib/log/package.json
 COPY ./src/lib/model/package.json ./lib/model/package.json
 COPY ./src/lib/requests/package.json ./lib/requests/package.json
 RUN npm ci --production
 
-FROM node:20-alpine
+FROM node:lts-alpine
 
 ARG BUILD_DATE
 ARG VCS_URL
@@ -36,7 +36,7 @@ LABEL org.label-schema.version=$VERSION
 # RUN npm prune --production
 # COPY ./src /src
 
-COPY --from=builder ~/src/ /src
+COPY --from=builder /src/ /src
 COPY ./src /src
 
 CMD ["node", "/src/index.js"]
